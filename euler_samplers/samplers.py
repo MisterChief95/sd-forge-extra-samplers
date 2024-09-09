@@ -1,9 +1,32 @@
 import math
 import torch
 
-from k_diffusion.sampling import _Rescaler, default_noise_sampler, get_ancestral_step, to_d
+from k_diffusion.sampling import default_noise_sampler, get_ancestral_step, to_d
 
 from tqdm.auto import trange
+
+
+class _Rescaler:
+    def __init__(self, model, x, mode, **extra_args):
+        self.model = model
+        self.x = x
+        self.mode = mode
+        self.extra_args = extra_args
+        self.init_latent, self.mask, self.nmask = model.init_latent, model.mask, model.nmask
+
+    def __enter__(self):
+        if self.init_latent is not None:
+            self.model.init_latent = torch.nn.functional.interpolate(input=self.init_latent, size=self.x.shape[2:4], mode=self.mode)
+        if self.mask is not None:
+            self.model.mask = torch.nn.functional.interpolate(input=self.mask.unsqueeze(0), size=self.x.shape[2:4], mode=self.mode).squeeze(0)
+        if self.nmask is not None:
+            self.model.nmask = torch.nn.functional.interpolate(input=self.nmask.unsqueeze(0), size=self.x.shape[2:4], mode=self.mode).squeeze(0)
+
+        return self
+
+    def __exit__(self, type, value, traceback):
+        del self.model.init_latent, self.model.mask, self.model.nmask
+        self.model.init_latent, self.model.mask, self.model.nmask = self.init_latent, self.mask, self.nmask
 
 
 def overall_sampling_step(x, model, dt, sigma_hat, **extra_args):
