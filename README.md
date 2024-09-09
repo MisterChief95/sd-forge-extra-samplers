@@ -28,6 +28,11 @@ The source for these new samplers come from projects created by [Koishi-Star](ht
 3. Select one of the newly added Euler samplers from the list.
 4. Generate images as usual.
 
+### Tips
+
+- Most schedulers will work with these samplers for general generations and hires fix.
+- The `Normal` and `Beta` schedulers do not work well with Adetailer. `Karras` is recommended for adetailer.
+
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
