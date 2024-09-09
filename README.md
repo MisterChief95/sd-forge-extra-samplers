@@ -5,8 +5,12 @@ This repository provides additional Euler samplers for the Stable Diffusion (SD)
 ## Features
 
 - Additional Euler samplers integrated into the SD Forge WebUI.
-- Improved image generation quality and variety.
-- Easy installation and setup.
+  - Euler Max
+  - Euler Negative
+  - Euler Dy
+  - Euler Dy Negative
+  - Euler SMEA Dy
+  - Euler SMEA Dy Negative
 
 ## Installation
 
@@ -14,11 +18,11 @@ This repository provides additional Euler samplers for the Stable Diffusion (SD)
     ```sh
     git clone https://github.com/yourusername/sd-forge-extra-euler-samplers.git
     ```
-2. Restart the SD Forge WebUI to load the new samplers.
+2. Restart the WebUI to load the new samplers.
 
 ## Usage
 
-1. Open the SD Forge WebUI.
+1. Open the WebUI.
 2. Navigate to the sampler settings.
 3. Select one of the newly added Euler samplers from the list.
 4. Generate images as usual.
