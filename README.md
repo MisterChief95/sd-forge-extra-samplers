@@ -12,7 +12,7 @@ This repository provides additional Euler samplers for the Stable Diffusion (SD)
 
 1. Clone this repository into the `extensions` directory of your SD Forge WebUI installation:
     ```sh
-    git clone https://github.com/yourusername/sd-forge-extra-euler-samplers.git /d:/AI/stable-diffusion-webui-forge/extensions/sd-forge-extra-euler-samplers
+    git clone https://github.com/yourusername/sd-forge-extra-euler-samplers.git
     ```
 2. Restart the SD Forge WebUI to load the new samplers.
 
