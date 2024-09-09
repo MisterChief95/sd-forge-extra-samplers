@@ -417,7 +417,8 @@ def sample_euler_negative(
 
 @torch.no_grad()
 def sample_kohaku_lonyu_yog(model, x, sigmas, extra_args=None, callback=None, disable=None, s_churn=0., s_tmin=0.,
-                    s_tmax=float('inf'), s_noise=1., noise_sampler=None, eta=1.):
+                     s_tmax=float('inf'), s_noise=1., noise_sampler=None, eta=1.):
+    """Kohaku_LoNyu_Yog"""
     extra_args = {} if extra_args is None else extra_args
     s_in = x.new_ones([x.shape[0]])
     noise_sampler = default_noise_sampler(x) if noise_sampler is None else noise_sampler
@@ -450,7 +451,6 @@ def sample_kohaku_lonyu_yog(model, x, sigmas, extra_args=None, callback=None, di
 
             real_d = (d + d3) / 2
             x = x + real_d * dt
-
             x = x + noise_sampler(sigmas[i], sigmas[i + 1]) * s_noise * sigma_up
         
         else:

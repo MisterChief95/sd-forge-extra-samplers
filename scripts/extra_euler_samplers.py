@@ -7,7 +7,7 @@ from modules.sd_samplers_kdiffusion import KDiffusionSampler
 
 # See modules_forge/alter_samplers.py for the basis of this class and build_constructor function
 
-class EulerSampler(KDiffusionSampler):
+class ExtraSampler(KDiffusionSampler):
     """
     Overloads KDiffusionSampler to add extra parameters to the constructor
     Based off lllyasviel's AlterSampler
@@ -25,7 +25,7 @@ class EulerSampler(KDiffusionSampler):
 
 def build_constructor(sampler_name):
     def constructor(m):
-        return EulerSampler(m, sampler_name)
+        return ExtraSampler(m, sampler_name)
 
     return constructor
 
@@ -38,7 +38,7 @@ euler_sampler_list = [
     ("Euler SMEA", "sample_euler_smea", ["k_euler_smea"], {}),
     ("Euler SMEA Dy", "sample_euler_smea_dy", ["k_euler_smea_dy"], {}),
     ("Euler SMEA Dy Negative", "sample_euler_smea_dy_negative", ["k_euler_smea_dy_negative"], {}),
-    ("Kohaku LoNyu Yog", "sample_kohaku_lonyu_yog", ["k_kohaku_lonyu_yog"], {"uses_ensd": True, "second_order": True}),
+    ("Kohaku LoNyu Yog", "sample_kohaku_lonyu_yog", ["k_kohaku_lonyu_yog"], {}),
 ]
 
 euler_samplers_data_k_diffusion: list[SamplerData] = [
