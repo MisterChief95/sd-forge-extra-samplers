@@ -38,7 +38,7 @@ euler_sampler_list = [
     ("Euler SMEA", "sample_euler_smea", ["k_euler_smea"], {}),
     ("Euler SMEA Dy", "sample_euler_smea_dy", ["k_euler_smea_dy"], {}),
     ("Euler SMEA Dy Negative", "sample_euler_smea_dy_negative", ["k_euler_smea_dy_negative"], {}),
-    ("Kohaku_LoNyu_Yog", "sample_kohaku_lonnyu_yog", ["k_kohaku_lonnyu_yog"], {"uses_ensd": True, "second_order": True}),
+    ("Kohaku LoNyu Yog", "sample_kohaku_lonnyu_yog", ["k_kohaku_lonnyu_yog"], {"uses_ensd": True, "second_order": True}),
 ]
 
 euler_samplers_data_k_diffusion: list[SamplerData] = [
