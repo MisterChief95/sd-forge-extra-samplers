@@ -33,5 +33,13 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Acknowledgements
 
-- Thanks to the developers of the original SD Forge WebUI.
+If any of these are incorrect please let me know!
+
+- Thanks to the developers of Automatic1111 and Forge.
+- [Koishi-Star](https://github.com/Koishi-Star/Euler-Smea-Dyn-Sampler) for the following sampler contributions:
+  - Euler Negative
+  - Euler Dy Negative
+  - Euler SMEA Dy (basis of Euler SMEA Dy Negative as well)
+- [licyk](https://github.com/licyk/advanced_euler_sampler_extension/tree/main) for the following sampler contributions:
+  - Euler Max
 - Special thanks to the contributors of this repository.
