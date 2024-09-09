@@ -10,8 +10,10 @@ The source for these new samplers come from projects created by [Koishi-Star](ht
   - Euler Negative
   - Euler Dy
   - Euler Dy Negative
+  - Euler SMEA
   - Euler SMEA Dy
   - Euler SMEA Dy Negative
+  - Kohaku LoNyu Yog
 
 ## Installation
 
@@ -31,7 +33,7 @@ The source for these new samplers come from projects created by [Koishi-Star](ht
 ### Tips
 
 - Most schedulers will work with these samplers for general generations and hires fix.
-- The `Normal` and `Beta` schedulers do not work well with Adetailer. `Karras` is recommended for adetailer.
+- The `Normal` and `Beta` schedulers do not work well with Adetailer. `Karras` is recommended for Adetailer.
 
 ## Contributing
 
@@ -48,8 +50,11 @@ If any of these are incorrect please let me know!
 - Thanks to the developers of Automatic1111 and Forge.
 - [Koishi-Star](https://github.com/Koishi-Star/Euler-Smea-Dyn-Sampler) for the following sampler contributions:
   - Euler Negative
+  - Euler Dy
   - Euler Dy Negative
-  - Euler SMEA Dy (basis of Euler SMEA Dy Negative as well)
+  - Euler SMEA Dy (Euler SMEA Dy Negative based on this)
 - [licyk](https://github.com/licyk/advanced_euler_sampler_extension/tree/main) for the following sampler contributions:
   - Euler Max
+  - Euler SMEA
+  - Kohaku LoNyu Yog
 - Special thanks to the contributors of this repository.

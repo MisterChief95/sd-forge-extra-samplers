@@ -13,12 +13,12 @@ class EulerSampler(KDiffusionSampler):
     Based off lllyasviel's AlterSampler
     """
 
-    def __init__(self, sd_model, sampler_name):
+    def __init__(self, sd_model, sampler_name, options=None):
         self.sampler_name = sampler_name
         self.unet = sd_model.forge_objects.unet
         sampler_function = getattr(samplers, sampler_name)
         
-        super().__init__(sampler_function, sd_model, None)
+        super().__init__(sampler_function, sd_model, options)
 
         self.extra_params = ["s_churn", "s_tmin", "s_tmax", "s_noise"]
 
@@ -31,17 +31,19 @@ def build_constructor(sampler_name):
 
 
 euler_sampler_list = [
-    ("Euler Max", "sample_euler_max", ["k_euler_max"]),
-    ("Euler Negative", "sample_euler_negative", ["k_euler_negative"]),
-    ("Euler Dy", "sample_euler_dy", ["k_euler_dy"]),
-    ("Euler Dy Negative", "sample_euler_dy_negative", ["k_euler_dy_negative"]),
-    ("Euler SMEA Dy", "sample_euler_smea_dy", ["k_euler_smea_dy"]),
-    ("Euler SMEA Dy Negative", "sample_euler_smea_dy_negative", ["k_euler_smea_dy_negative"]),
+    ("Euler Max", "sample_euler_max", ["k_euler_max"], {}),
+    ("Euler Negative", "sample_euler_negative", ["k_euler_negative"], {}),
+    ("Euler Dy", "sample_euler_dy", ["k_euler_dy"], {}),
+    ("Euler Dy Negative", "sample_euler_dy_negative", ["k_euler_dy_negative"], {}),
+    ("Euler SMEA", "sample_euler_smea", ["k_euler_smea"], {}),
+    ("Euler SMEA Dy", "sample_euler_smea_dy", ["k_euler_smea_dy"], {}),
+    ("Euler SMEA Dy Negative", "sample_euler_smea_dy_negative", ["k_euler_smea_dy_negative"], {}),
+    ("Kohaku_LoNyu_Yog", "sample_kohaku_lonnyu_yog", ["k_kohaku_lonnyu_yog"], {"uses_ensd": True, "second_order": True}),
 ]
 
 euler_samplers_data_k_diffusion: list[SamplerData] = [
-    SamplerData(name, build_constructor(sampler_name=funcname), aliases, {})
-    for name, funcname, aliases in euler_sampler_list
+    SamplerData(name, build_constructor(sampler_name=funcname), aliases, options)
+    for name, funcname, aliases, options in euler_sampler_list
 ]
 
 for sampler in euler_samplers_data_k_diffusion:
