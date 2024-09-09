@@ -4,7 +4,7 @@ This repository provides additional Euler samplers for the Stable Diffusion (SD)
 
 ## Features
 
-- Additional Euler samplers integrated into the SD Forge WebUI.
+- Additional Euler samplers integrated into the Forge WebUI.
   - Euler Max
   - Euler Negative
   - Euler Dy
