@@ -13,7 +13,6 @@ The source for these new samplers come from projects created by [Koishi-Star](ht
   - Euler SMEA
   - Euler SMEA Dy
   - Euler SMEA Dy Negative
-  - Kohaku LoNyu Yog
  
 ### Comparison
 
@@ -62,5 +61,4 @@ If any of these are incorrect please let me know!
 - [licyk](https://github.com/licyk/advanced_euler_sampler_extension/tree/main) for the following sampler contributions:
   - Euler Max
   - Euler SMEA
-  - Kohaku LoNyu Yog
 - Special thanks to the contributors of this repository.
