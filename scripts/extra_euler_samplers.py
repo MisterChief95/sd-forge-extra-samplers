@@ -1,4 +1,4 @@
-from euler_samplers import samplers
+import extra_euler_samplers
 
 from modules.sd_samplers import add_sampler, all_samplers
 from modules.sd_samplers_common import SamplerData
@@ -16,7 +16,7 @@ class ExtraSampler(KDiffusionSampler):
     def __init__(self, sd_model, sampler_name, options=None):
         self.sampler_name = sampler_name
         self.unet = sd_model.forge_objects.unet
-        sampler_function = getattr(samplers, sampler_name)
+        sampler_function = getattr(extra_euler_samplers, sampler_name)
         
         super().__init__(sampler_function, sd_model, options)
 
