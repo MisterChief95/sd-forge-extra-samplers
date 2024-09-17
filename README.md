@@ -25,7 +25,7 @@ Steps: 30, Schedule type: Karras, CFG scale: 5, Seed: 4103437930, Size: 832x1216
 
 1. Clone this repository into the `extensions` directory of your WebUI installation:
     ```sh
-    git clone https://github.com/yourusername/sd-forge-extra-euler-samplers.git
+    git clone https://github.com/MisterChief95/sd-forge-extra-euler-samplers.git
     ```
 2. Restart the WebUI to load the new samplers.
 
