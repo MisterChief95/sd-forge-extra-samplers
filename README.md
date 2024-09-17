@@ -39,7 +39,7 @@ Steps: 30, Schedule type: Karras, CFG scale: 5, Seed: 4103437930, Size: 832x1216
 ### Tips
 
 - Most schedulers will work with these samplers for general generations and Hires fix.
-  - The SMEA schedulers do not work for Hires fix/Adetailer
+  - The SMEA schedulers do work well for Hires fix/Adetailer. They cause smearing/deformation.
 - The `Normal` and `Beta` schedulers do not work well with Adetailer. `Karras` is recommended for Adetailer.
 
 ## Contributing
