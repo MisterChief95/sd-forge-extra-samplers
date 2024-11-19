@@ -1,6 +1,6 @@
 # SD Forge Extra Euler Samplers
 
-This repository provides additional Euler samplers for the Stable Diffusion (SD) Forge WebUI. These samplers enhance the capabilities of the SD Forge WebUI by offering more options for image generation.
+This repository provides additional Euler samplers to the Forge WebUI.
 The source for these new samplers come from projects created by [Koishi-Star](https://github.com/Koishi-Star/Euler-Smea-Dyn-Sampler) and [licyk](https://github.com/licyk/advanced_euler_sampler_extension/tree/main).
 
 ## Features
