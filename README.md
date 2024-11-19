@@ -36,11 +36,10 @@ Steps: 30, Schedule type: Karras, CFG scale: 5, Seed: 4103437930, Size: 832x1216
 3. Select one of the newly added Euler samplers from the list.
 4. Generate images as usual.
 
-### Tips
+Because of how these Dy/SMEA samplers work, they are not guaranteed to function correctly in img2img scenarios (Hires fix, adetailer, etc).
+If you get strange outputs or artifcating in these cases, try using a different sampler after generating the base image.
 
-- Most schedulers will work with these samplers for general generations and Hires fix.
-  - The SMEA schedulers do *not* work well for Hires fix/Adetailer. They cause smearing/deformation.
-- The `Simple`, `Normal`, and `Beta` schedulers do not work well with Adetailer. `Uniform` and `Karras` are recommendeded for Adetailer.
+Euler Max seems to work fine in just about all scenarios from my own testing.
 
 ## Contributing
 
