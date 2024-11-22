@@ -5,3 +5,4 @@ from .euler_smea_dy import sample_euler_smea_dy
 from .euler_smea_dy_negative import sample_euler_smea_dy_negative
 from .euler_max import sample_euler_max
 from .euler_negative import sample_euler_negative
+from .kohaku_lonyu_yog import sample_kohaku_lonyu_yog
