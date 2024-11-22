@@ -5,7 +5,7 @@ The source for these new samplers come from projects created by [Koishi-Star](ht
 
 ## Features
 
-- Additional Euler samplers integrated into the Forge WebUI.
+- Additional samplers integrated into the Forge WebUI.
   - Euler Max
   - Euler Negative
   - Euler Dy
