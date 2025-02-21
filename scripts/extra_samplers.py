@@ -1,4 +1,4 @@
-import extra_euler_samplers
+import extra_samplers
 
 from modules.sd_samplers import add_sampler, all_samplers
 from modules.sd_samplers_common import SamplerData
@@ -17,7 +17,7 @@ class ExtraSampler(KDiffusionSampler):
     def __init__(self, sd_model, sampler_name, options=None):
         self.sampler_name = sampler_name
         self.unet = sd_model.forge_objects.unet
-        sampler_function = getattr(extra_euler_samplers, sampler_name)
+        sampler_function = getattr(extra_samplers, sampler_name)
 
         super().__init__(sampler_function, sd_model, options)
 
@@ -40,6 +40,8 @@ euler_sampler_list = [
     ("Euler SMEA Dy", "sample_euler_smea_dy", ["k_euler_smea_dy"], {}),
     ("Euler SMEA Dy Negative", "sample_euler_smea_dy_negative", ["k_euler_smea_dy_negative"], {}),
     ("Kohaku LoNyu Yog", "sample_kohaku_lonyu_yog", ["k_kohaku_lonyu_yog"], {}),
+    ("Res Multistep", "sample_res_multistep", ["k_res_multistep"], {'scheduler': 'karras'}),
+    # ("Res Multistep CFG++", "sample_res_multistep_cfgpp", ["k_res_multistep_cfgpp"], {'scheduler': 'karras'}), TODO: determine how to get uncond_denoised
 ]
 
 euler_samplers_data_k_diffusion: list[SamplerData] = [
