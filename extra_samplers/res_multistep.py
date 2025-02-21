@@ -3,34 +3,59 @@ from tqdm.auto import trange
 
 from backend.modules.k_diffusion_extra import default_noise_sampler
 from backend.patcher.unet import UnetPatcher
-from backend.sampling.condition import ConditionCrossAttn
-from modules.sd_samplers_kdiffusion import CFGDenoiserKDiffusion
 from k_diffusion.sampling import get_ancestral_step, to_d
+from modules.sd_samplers_kdiffusion import CFGDenoiserKDiffusion
 
 
 def sigma_fn(t):
+    """
+    Computes the sigma function for a given tensor `t`.
+    The sigma function is defined as the exponential of the negation of `t`.
+    Args:
+        t (torch.Tensor): Input tensor.
+    Returns:
+        torch.Tensor: The result of applying the sigma function to `t`.
+    """
+
     return t.neg().exp()
 
 
 def t_fn(sigma):
+    """
+    Computes the negative logarithm of the input tensor.
+    Args:
+        sigma (torch.Tensor): A tensor for which the negative logarithm is to be computed.
+    Returns:
+        torch.Tensor: A tensor containing the negative logarithm of the input tensor.
+    """
+
     return sigma.log().neg()
 
 
 def phi1_fn(t):
+    """
+    Computes the function phi1(t) = (exp(t) - 1) / t using PyTorch's expm1 function.
+    Args:
+        t (torch.Tensor): Input tensor.
+    Returns:
+        torch.Tensor: The result of (exp(t) - 1) / t.
+    """
+
     return torch.expm1(t) / t
 
 
 def phi2_fn(t):
+    """
+    Compute the value of the phi2 function.
+    The phi2 function is defined as (phi1_fn(t) - 1.0) / t, where phi1_fn is 
+    another function that takes a single argument t.
+    Parameters:
+    t (float): The input value for the function.
+    Returns:
+    float: The computed value of the phi2 function.
+    """
+
     return (phi1_fn(t) - 1.0) / t
-
-
-def construct_empty_uncond(cond):
-    dict(
-        cross_attn=cond,
-        model_conds=dict(
-            c_crossattn=ConditionCrossAttn(cond),
-        ),
-    )
 
 
 @torch.no_grad()
@@ -48,6 +73,24 @@ def res_multistep(
     noise_sampler=None,
     cfg_pp=False,
 ):
+    """
+    Perform multi-step denoising using a conditional denoising model.
+    Args:
+        model (CFGDenoiserKDiffusion): The denoising model to use.
+        x (torch.Tensor): The input tensor to be denoised.
+        sigmas (list or torch.Tensor): A list or tensor of sigma values for each step.
+        extra_args (dict, optional): Additional arguments to pass to the model. Defaults to None.
+        callback (callable, optional): A callback function to be called after each step. Defaults to None.
+        disable (bool, optional): If True, disables the progress bar. Defaults to None.
+        s_churn (float, optional): Churn parameter for stochasticity. Defaults to 0.0.
+        s_tmin (float, optional): Minimum sigma value for churn. Defaults to 0.0.
+        s_tmax (float, optional): Maximum sigma value for churn. Defaults to float("inf").
+        s_noise (float, optional): Noise scale for stochasticity. Defaults to 1.0.
+        noise_sampler (callable, optional): Function to sample noise. Defaults to None.
+        cfg_pp (bool, optional): If True, enables post-processing for classifier-free guidance. Defaults to False.
+    Returns:
+        torch.Tensor: The denoised output tensor.
+    """
     extra_args = {} if extra_args is None else extra_args
     noise_sampler = default_noise_sampler(x) if noise_sampler is None else noise_sampler
     s_in = x.new_ones([x.shape[0]])
@@ -55,6 +98,7 @@ def res_multistep(
     old_denoised = None
     uncond_denoised = None
 
+    # unconditional denoised is used for the second order multistep method
     def post_cfg_function(args):
         nonlocal uncond_denoised
         uncond_denoised = args["uncond_denoised"]
@@ -63,7 +107,7 @@ def res_multistep(
     if cfg_pp:
         model.need_last_noise_uncond = True
         unet_patcher: UnetPatcher = model.inner_model.inner_model.forge_objects.unet
-        unet_patcher.model_options["disable_cfg1_optimization"] = True
+        unet_patcher.model_options["disable_cfg1_optimization"] = True # not sure if this really works
         unet_patcher.set_model_sampler_post_cfg_function(post_cfg_function)
 
     for i in trange(len(sigmas) - 1, disable=disable):
@@ -127,6 +171,25 @@ def res_multistep_ancestral(
     noise_sampler=None,
     cfg_pp=False,
 ):
+    """
+    Perform ancestral sampling with a multi-step method for denoising.
+    Args:
+        model (CFGDenoiserKDiffusion): The denoising model to use.
+        x (torch.Tensor): The input tensor to be denoised.
+        sigmas (list): A list of sigma values for the denoising process.
+        extra_args (dict, optional): Additional arguments for the model. Defaults to None.
+        callback (callable, optional): A callback function to be called after each step. Defaults to None.
+        disable (bool, optional): If True, disables the progress bar. Defaults to None.
+        s_churn (float, optional): Churn parameter for noise addition. Defaults to 0.0.
+        s_tmin (float, optional): Minimum sigma value for churn. Defaults to 0.0.
+        s_tmax (float, optional): Maximum sigma value for churn. Defaults to float("inf").
+        eta (float, optional): Eta parameter for the ancestral step. Defaults to 1.0.
+        s_noise (float, optional): Noise scale parameter. Defaults to 1.0.
+        noise_sampler (callable, optional): Function to sample noise. Defaults to None.
+        cfg_pp (bool, optional): If True, enables classifier-free guidance post-processing. Defaults to False.
+    Returns:
+        torch.Tensor: The denoised output tensor.
+    """
     extra_args = {} if extra_args is None else extra_args
     noise_sampler = default_noise_sampler(x) if noise_sampler is None else noise_sampler
     s_in = x.new_ones([x.shape[0]])
@@ -214,6 +277,7 @@ def sample_res_multistep(
     s_noise=1.0,
     noise_sampler=None,
 ):
+    """Convenience function for sampling with the Res Multistep method."""
     return res_multistep(
         model,
         x,
@@ -244,6 +308,7 @@ def sample_res_multistep_cfgpp(
     s_noise=1.0,
     noise_sampler=None,
 ):
+    """Convenience function for sampling with the Res Multistep method with CFG++."""
     return res_multistep(
         model,
         x,
@@ -275,6 +340,7 @@ def sample_res_multistep_ancestral(
     s_noise=1.0,
     noise_sampler=None,
 ):
+    """Convenience function for sampling with the Res Multistep Ancestral method."""
     return res_multistep_ancestral(
         model,
         x,
@@ -307,6 +373,7 @@ def sample_res_multistep_ancestral_cfgpp(
     s_noise=1.0,
     noise_sampler=None,
 ):
+    """Convenience function for sampling with the Res Multistep Ancestral method with CFG++."""
     return res_multistep_ancestral(
         model,
         x,
