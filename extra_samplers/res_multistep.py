@@ -7,15 +7,40 @@ from modules.sd_samplers_kdiffusion import CFGDenoiserKDiffusion
 from k_diffusion.sampling import to_d
 
 
+def sigma_fn(t):
+    return t.neg().exp()
+
+
+def t_fn(sigma):
+    return sigma.log().neg()
+
+
+def phi1_fn(t):
+    return torch.expm1(t) / t
+
+
+def phi2_fn(t):
+    return (phi1_fn(t) - 1.0) / t
+
+
 @torch.no_grad()
-def res_multistep(model: CFGDenoiserKDiffusion, x, sigmas, extra_args=None, callback=None, disable=None, s_churn=0., s_tmin=0., s_tmax=float('inf'), s_noise=1., noise_sampler=None, cfg_pp=False):
+def res_multistep(
+    model: CFGDenoiserKDiffusion,
+    x,
+    sigmas,
+    extra_args=None,
+    callback=None,
+    disable=None,
+    s_churn=0.0,
+    s_tmin=0.0,
+    s_tmax=float("inf"),
+    s_noise=1.0,
+    noise_sampler=None,
+    cfg_pp=False,
+):
     extra_args = {} if extra_args is None else extra_args
     noise_sampler = default_noise_sampler(x) if noise_sampler is None else noise_sampler
     s_in = x.new_ones([x.shape[0]])
-    sigma_fn = lambda t: t.neg().exp()
-    t_fn = lambda sigma: sigma.log().neg()
-    phi1_fn = lambda t: torch.expm1(t) / t
-    phi2_fn = lambda t: (phi1_fn(t) - 1.0) / t
 
     old_denoised = None
     uncond_denoised = None
@@ -29,8 +54,9 @@ def res_multistep(model: CFGDenoiserKDiffusion, x, sigmas, extra_args=None, call
     if cfg_pp:
         model.need_last_noise_uncond = True
         model_options = extra_args.get("model_options", {}).copy()
-        extra_args["model_options"] = set_model_options_post_cfg_function(model_options, post_cfg_function, disable_cfg1_optimization=True)
-
+        extra_args["model_options"] = set_model_options_post_cfg_function(
+            model_options, post_cfg_function, disable_cfg1_optimization=True
+        )
 
     for i in trange(len(sigmas) - 1, disable=disable):
         if s_churn > 0:
@@ -43,12 +69,12 @@ def res_multistep(model: CFGDenoiserKDiffusion, x, sigmas, extra_args=None, call
         if gamma > 0:
             eps = torch.randn_like(x) * s_noise
             x = x + eps * (sigma_hat**2 - sigmas[i] ** 2) ** 0.5
-        
+
         denoised = model(x, sigma_hat * s_in, **extra_args)
-        
+
         if callback is not None:
             callback({"x": x, "i": i, "sigma": sigmas[i], "sigma_hat": sigma_hat, "denoised": denoised})
-        
+
         if sigmas[i + 1] == 0 or old_denoised is None:
             # Euler method
             if cfg_pp:
@@ -75,10 +101,62 @@ def res_multistep(model: CFGDenoiserKDiffusion, x, sigmas, extra_args=None, call
         old_denoised = denoised
     return x
 
-@torch.no_grad()
-def sample_res_multistep(model, x, sigmas, extra_args=None, callback=None, disable=None, s_churn=0., s_tmin=0., s_tmax=float('inf'), s_noise=1., noise_sampler=None):
-    return res_multistep(model, x, sigmas, extra_args=extra_args, callback=callback, disable=disable, s_churn=s_churn, s_tmin=s_tmin, s_tmax=s_tmax, s_noise=s_noise, noise_sampler=noise_sampler, cfg_pp=False)
 
 @torch.no_grad()
-def sample_res_multistep_cfgpp(model, x, sigmas, extra_args=None, callback=None, disable=None, s_churn=0., s_tmin=0., s_tmax=float('inf'), s_noise=1., noise_sampler=None):
-    return res_multistep(model, x, sigmas, extra_args=extra_args, callback=callback, disable=disable, s_churn=s_churn, s_tmin=s_tmin, s_tmax=s_tmax, s_noise=s_noise, noise_sampler=noise_sampler, cfg_pp=True)
+def sample_res_multistep(
+    model,
+    x,
+    sigmas,
+    extra_args=None,
+    callback=None,
+    disable=None,
+    s_churn=0.0,
+    s_tmin=0.0,
+    s_tmax=float("inf"),
+    s_noise=1.0,
+    noise_sampler=None,
+):
+    return res_multistep(
+        model,
+        x,
+        sigmas,
+        extra_args=extra_args,
+        callback=callback,
+        disable=disable,
+        s_churn=s_churn,
+        s_tmin=s_tmin,
+        s_tmax=s_tmax,
+        s_noise=s_noise,
+        noise_sampler=noise_sampler,
+        cfg_pp=False,
+    )
+
+
+@torch.no_grad()
+def sample_res_multistep_cfgpp(
+    model,
+    x,
+    sigmas,
+    extra_args=None,
+    callback=None,
+    disable=None,
+    s_churn=0.0,
+    s_tmin=0.0,
+    s_tmax=float("inf"),
+    s_noise=1.0,
+    noise_sampler=None,
+):
+    return res_multistep(
+        model,
+        x,
+        sigmas,
+        extra_args=extra_args,
+        callback=callback,
+        disable=disable,
+        s_churn=s_churn,
+        s_tmin=s_tmin,
+        s_tmax=s_tmax,
+        s_noise=s_noise,
+        noise_sampler=noise_sampler,
+        cfg_pp=True,
+    )
