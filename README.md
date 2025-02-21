@@ -1,7 +1,7 @@
-# SD Forge Extra Euler Samplers
+# SD Forge Extra Samplers
 
 This repository provides additional Euler samplers to the Forge WebUI.
-The source for these new samplers come from projects created by [Koishi-Star](https://github.com/Koishi-Star/Euler-Smea-Dyn-Sampler) and [licyk](https://github.com/licyk/advanced_euler_sampler_extension/tree/main).
+The source for these new samplers come from projects created by [Koishi-Star](https://github.com/Koishi-Star/Euler-Smea-Dyn-Sampler), [licyk](https://github.com/licyk/advanced_euler_sampler_extension/tree/main), and [Pancovix](https://github.com/Panchovix/stable-diffusion-webui-reForge/blob/70f68fd52cb70f8f64e18e6c8e775e35ddf70f67/ldm_patched/k_diffusion/sampling.py#L2844)
 
 ## Features
 
@@ -14,6 +14,10 @@ The source for these new samplers come from projects created by [Koishi-Star](ht
   - Euler SMEA Dy
   - Euler SMEA Dy Negative
   - Kohaku LoNyu Yog
+  - Res Multistep
+  - Res Multistep CFG++
+  - Res Multistep Ancestral
+  - Res Multistep Ancestral CFG++
  
 ### Comparison
 
@@ -26,7 +30,7 @@ Steps: 30, Schedule type: Karras, CFG scale: 5, Seed: 4103437930, Size: 832x1216
 
 1. Clone this repository into the `extensions` directory of your WebUI installation:
     ```sh
-    git clone https://github.com/MisterChief95/sd-forge-extra-euler-samplers.git
+    git clone https://github.com/MisterChief95/sd-forge-extra-samplers.git
     ```
 2. Restart the WebUI to load the new samplers.
 
@@ -60,7 +64,11 @@ If any of these are incorrect please let me know!
   - Euler Dy
   - Euler Dy Negative
   - Euler SMEA Dy (Euler SMEA Dy Negative based on this)
+  - Kohaku LoNyu Yog
 - [licyk](https://github.com/licyk/advanced_euler_sampler_extension/tree/main) for the following sampler contributions:
   - Euler Max
   - Euler SMEA
+- [Panchovix](https://github.com/Panchovix/stable-diffusion-webui-reForge)
+  - Res Multistep
+  - Res Multistep CFG++
 - Special thanks to the contributors of this repository.

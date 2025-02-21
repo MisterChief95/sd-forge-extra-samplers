@@ -47,7 +47,7 @@ def phi1_fn(t):
 def phi2_fn(t):
     """
     Compute the value of the phi2 function.
-    The phi2 function is defined as (phi1_fn(t) - 1.0) / t, where phi1_fn is 
+    The phi2 function is defined as (phi1_fn(t) - 1.0) / t, where phi1_fn is
     another function that takes a single argument t.
     Parameters:
     t (float): The input value for the function.
@@ -107,7 +107,7 @@ def res_multistep(
     if cfg_pp:
         model.need_last_noise_uncond = True
         unet_patcher: UnetPatcher = model.inner_model.inner_model.forge_objects.unet
-        unet_patcher.model_options["disable_cfg1_optimization"] = True # not sure if this really works
+        unet_patcher.model_options["disable_cfg1_optimization"] = True  # not sure if this really works
         unet_patcher.set_model_sampler_post_cfg_function(post_cfg_function)
 
     for i in trange(len(sigmas) - 1, disable=disable):
