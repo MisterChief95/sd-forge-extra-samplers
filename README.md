@@ -1,7 +1,7 @@
 # SD Forge Extra Samplers
 
 This repository provides additional Euler samplers to the Forge WebUI.
-The source for these new samplers come from projects created by [Koishi-Star](https://github.com/Koishi-Star/Euler-Smea-Dyn-Sampler), [licyk](https://github.com/licyk/advanced_euler_sampler_extension/tree/main), and [Pancovix](https://github.com/Panchovix/stable-diffusion-webui-reForge/blob/70f68fd52cb70f8f64e18e6c8e775e35ddf70f67/ldm_patched/k_diffusion/sampling.py#L2844)
+The source for these new samplers come from projects created by [Koishi-Star](https://github.com/Koishi-Star/Euler-Smea-Dyn-Sampler), [licyk](https://github.com/licyk/advanced_euler_sampler_extension/tree/main), and [Panchovix](https://github.com/Panchovix/stable-diffusion-webui-reForge/blob/70f68fd52cb70f8f64e18e6c8e775e35ddf70f67/ldm_patched/k_diffusion/sampling.py#L2844)
 
 ## Features
 
