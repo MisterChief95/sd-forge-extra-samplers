@@ -40,7 +40,7 @@ euler_sampler_list = [
     ("Euler SMEA Dy", "sample_euler_smea_dy", ["k_euler_smea_dy"], {}),
     ("Euler SMEA Dy Negative", "sample_euler_smea_dy_negative", ["k_euler_smea_dy_negative"], {}),
     ("Kohaku LoNyu Yog", "sample_kohaku_lonyu_yog", ["k_kohaku_lonyu_yog"], {}),
-    ("Kohaku LoNyu Yog CFG++", "sample_kohaku_lonyu_yog_cfgpp", ["k_kohaku_lonyu_yog_cfgpp"], {}),
+    # ("Kohaku LoNyu Yog CFG++", "sample_kohaku_lonyu_yog_cfgpp", ["k_kohaku_lonyu_yog_cfgpp"], {}),
     ("Res Multistep", "sample_res_multistep", ["k_res_multistep"], {"scheduler": "sgm_uniform"}),
     (
         "Res Multistep CFG++",
