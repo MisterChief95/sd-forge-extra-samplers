@@ -14,7 +14,7 @@ The source for these new samplers come from projects created by [Koishi-Star](ht
   - Euler SMEA Dy
   - Euler SMEA Dy Negative
   - Kohaku LoNyu Yog
-  - Kohaku LoNyu Yog CFG++
+  - ~~Kohaku LoNyu Yog CFG++~~ (Not working correctly)
   - Res Multistep
   - Res Multistep CFG++
   - Res Multistep Ancestral
