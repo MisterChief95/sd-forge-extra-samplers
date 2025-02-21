@@ -40,8 +40,15 @@ euler_sampler_list = [
     ("Euler SMEA Dy", "sample_euler_smea_dy", ["k_euler_smea_dy"], {}),
     ("Euler SMEA Dy Negative", "sample_euler_smea_dy_negative", ["k_euler_smea_dy_negative"], {}),
     ("Kohaku LoNyu Yog", "sample_kohaku_lonyu_yog", ["k_kohaku_lonyu_yog"], {}),
-    ("Res Multistep", "sample_res_multistep", ["k_res_multistep"], {"scheduler": "karras"}),
-    # ("Res Multistep CFG++", "sample_res_multistep_cfgpp", ["k_res_multistep_cfgpp"], {'scheduler': 'karras'}), TODO: determine how to get uncond_denoised
+    ("Res Multistep", "sample_res_multistep", ["k_res_multistep"], {"scheduler": "sgm_uniform"}),
+    (
+        "Res Multistep CFG++",
+        "sample_res_multistep_cfgpp",
+        ["k_res_multistep_cfgpp"],
+        {"scheduler": "sgm_uniform"},
+    ),  # TODO: determine how to get uncond_denoised
+    ("Res Multistep Ancestral", "sample_res_multistep_ancestral", ["k_res_multistep_a"], {"scheduler": "sgm_uniform", "uses_ensd": True}),
+    ("Res Multistep Ancestral CFG++", "sample_res_multistep_ancestral_cfgpp", ["k_res_multistep_a_cgfpp"], {"scheduler": "sgm_uniform", "uses_ensd": True}),
 ]
 
 euler_samplers_data_k_diffusion: list[SamplerData] = [
