@@ -47,8 +47,18 @@ euler_sampler_list = [
         ["k_res_multistep_cfgpp"],
         {"scheduler": "sgm_uniform"},
     ),  # TODO: determine how to get uncond_denoised
-    ("Res Multistep Ancestral", "sample_res_multistep_ancestral", ["k_res_multistep_a"], {"scheduler": "sgm_uniform", "uses_ensd": True}),
-    ("Res Multistep Ancestral CFG++", "sample_res_multistep_ancestral_cfgpp", ["k_res_multistep_a_cgfpp"], {"scheduler": "sgm_uniform", "uses_ensd": True}),
+    (
+        "Res Multistep Ancestral",
+        "sample_res_multistep_ancestral",
+        ["k_res_multistep_a"],
+        {"scheduler": "sgm_uniform", "uses_ensd": True},
+    ),
+    (
+        "Res Multistep Ancestral CFG++",
+        "sample_res_multistep_ancestral_cfgpp",
+        ["k_res_multistep_a_cgfpp"],
+        {"scheduler": "sgm_uniform", "uses_ensd": True},
+    ),
 ]
 
 euler_samplers_data_k_diffusion: list[SamplerData] = [
