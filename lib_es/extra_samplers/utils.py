@@ -3,6 +3,10 @@ import torch
 from k_diffusion.sampling import to_d
 
 
+def clamp(x: int | float, lower: int | float, upper: int | float) -> int | float:
+    return max(lower, min(x, upper))
+
+
 class _Rescaler:
     def __init__(self, model, x, mode, **extra_args):
         self.model = model
