@@ -1,7 +1,6 @@
 from modules import scripts
 
-
-xyz_cache = {}
+import lib_es.const as consts
 
 
 def _grid_reference():
@@ -15,22 +14,24 @@ def _grid_reference():
     raise SystemError("Could not find X/Y/Z Plot...")
 
 
-def apply_field(field):
-    def _(p, x, xs):
-        xyz_cache.update({field: x})
+def xyz_support(cache: dict):
+    def apply_field(field):
+        def _(p, x, xs):
+            cache.update({field: x})
 
-    return _
+        return _
 
+    xyz_grid = _grid_reference()
 
-xyz_grid = _grid_reference()
+    extra_axis_options = [
+        xyz_grid.AxisOption("[Adaptive Prog] Euler A End", float, apply_field(consts.AP_EULER_A_END)),
+        xyz_grid.AxisOption("[Adaptive Prog] DPM++ 2M End", float, apply_field(consts.AP_DPM_2M_END)),
+        xyz_grid.AxisOption("[Adaptive Prog] Ancestral Eta", float, apply_field(consts.AP_ANCESTRAL_ETA)),
+        xyz_grid.AxisOption("[Adaptive Prog] Detail Strength", float, apply_field(consts.AP_DETAIL_STRENGTH)),
+        xyz_grid.AxisOption("[Langevin dyn] CFG Alpha", float, apply_field("exs_ld_cfg_alpha")),
+        xyz_grid.AxisOption("[Langevin dyn] CFG Beta", float, apply_field("exs_ld_cfg_beta")),
+        xyz_grid.AxisOption("[Langevin dyn] CFG Gamma", float, apply_field("exs_ld_cfg_gamma")),
+        xyz_grid.AxisOption("[Langevin dyn] Langevin Strength", float, apply_field("exs_ld_langevin_strength")),
+    ]
 
-extra_axis_options = [
-    xyz_grid.AxisOption("[Adaptive Prog] Detail Strength", float, apply_field("ap_detail_strength")),
-    xyz_grid.AxisOption("[Adaptive Prog] Eta", float, apply_field("ap_eta")),
-    xyz_grid.AxisOption("[Langevin dyn] CFG Alpha", float, apply_field("cfg_alpha")),
-    xyz_grid.AxisOption("[Langevin dyn] CFG Beta", float, apply_field("cfg_beta")),
-    xyz_grid.AxisOption("[Langevin dyn] CFG Gamma", float, apply_field("cfg_gamma")),
-    xyz_grid.AxisOption("[Langevin dyn] Langevin Strength", float, apply_field("langevin_strength")),
-]
-
-xyz_grid.axis_options.extend(extra_axis_options)
+    xyz_grid.axis_options.extend(extra_axis_options)

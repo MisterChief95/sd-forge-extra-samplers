@@ -1,4 +1,5 @@
 from .adaptive_progressive import sample_adaptive_progress_sampler
+from .dpmpp_2m_a import sample_dpmpp_2m_ancestral
 from .euler_a_2m_sde import sample_euler_ancestral_2m_sde, sample_euler_ancestral_2m_sde_cfgpp
 from .euler_dy import sample_euler_dy
 from .euler_dy_negative import sample_euler_dy_negative
@@ -20,6 +21,8 @@ from .res_multistep import (
 
 __all__ = [
     "sample_adaptive_progress_sampler",
+    "sample_dpmpp_2m_ancestral",
+    "sample_dpmpp_v_sde",
     "sample_euler_ancestral_2m_sde",
     "sample_euler_ancestral_2m_sde_cfgpp",
     "sample_euler_dy",

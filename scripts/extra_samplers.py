@@ -37,6 +37,12 @@ euler_sampler_list = [
         {"scheduler": "sgm_uniform", "uses_ensd": True},
     ),
     (
+        "DPM++ 2M a",
+        "sample_dpmpp_2m_ancestral",
+        ["k_dpmpp_2m_ancestral"],
+        {"scheduler": "karras", "uses_ensd": True},
+    ),
+    (
         "Euler a 2M SDE",
         "sample_euler_ancestral_2m_sde",
         ["k_euler_a_2m_sde"],
