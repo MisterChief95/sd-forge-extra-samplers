@@ -78,30 +78,3 @@ def sample_heun_ancestral(
                 x = x + noise_sampler(sigma, sigmas[i + 1]) * s_noise * sigma_up
 
     return x
-
-
-# Integration function for Automatic1111/Forge
-@torch.no_grad()
-def sample_heun_ancestral_integration(
-    model,
-    x,
-    sigmas,
-    extra_args=None,
-    callback=None,
-    disable=None,
-    eta=1.0,
-    s_noise=1.0,
-    noise_sampler=None,
-):
-    """Convenience function for Heun Ancestral sampler."""
-    return sample_heun_ancestral(
-        model,
-        x,
-        sigmas,
-        extra_args,
-        callback,
-        disable,
-        eta,
-        s_noise,
-        noise_sampler,
-    )
