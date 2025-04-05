@@ -8,7 +8,7 @@ from .euler_max import sample_euler_max
 from .euler_negative import sample_euler_negative
 from .heun_ancestral import sample_heun_ancestral
 from .kohaku_lonyu_yog import sample_kohaku_lonyu_yog
-from .langevin_euler_dyn import sample_langevin_euler
+from .langevin_euler import sample_langevin_euler
 from .res_multistep import sample_res_multistep, sample_res_multistep_cfgpp
 
 

@@ -87,10 +87,11 @@ class ExtraSamplerExtension(scripts.Script):
             with gr.Accordion(label="Langevin Euler", open=False):
                 langevin_strength = gr.Slider(
                     minimum=0.0,
-                    maximum=1.0,
+                    maximum=0.5,
                     step=0.01,
                     value=from_setting_or_default(consts.LANGEVIN_STRENGTH, 0.1),
                     label="Langevin Strength",
+                    info="Langevin strength for Langevin Euler sampler. Adjust to control the amount of noise.",
                 )
                 langevin_strength.change(
                     fn=lambda value: on_change_update_setting(consts.LANGEVIN_STRENGTH, value),
