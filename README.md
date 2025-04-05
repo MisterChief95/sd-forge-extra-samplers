@@ -15,6 +15,7 @@ The source for these new samplers come from projects created by [Koishi-Star](ht
   - Euler SMEA
   - Euler SMEA Dy
   - Euler SMEA Dy Negative
+  - Heun Ancestral
   - Kohaku LoNyu Yog
   - Langevin Euler (Experimental)
   - Res Multistep
