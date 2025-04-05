@@ -1,11 +1,6 @@
 import torch
 from tqdm.auto import trange
-from k_diffusion.sampling import to_d, get_ancestral_step
-
-
-def default_noise_sampler(x):
-    """Returns a function that generates random normal noise of the same shape as x."""
-    return lambda sigma, sigma_next: torch.randn_like(x)
+from k_diffusion.sampling import default_noise_sampler, get_ancestral_step, to_d
 
 
 @torch.no_grad()
