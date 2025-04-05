@@ -28,10 +28,7 @@ def xyz_support(cache: dict):
         xyz_grid.AxisOption("[Adaptive Prog] DPM++ 2M End", float, apply_field(consts.AP_DPM_2M_END)),
         xyz_grid.AxisOption("[Adaptive Prog] Ancestral Eta", float, apply_field(consts.AP_ANCESTRAL_ETA)),
         xyz_grid.AxisOption("[Adaptive Prog] Detail Strength", float, apply_field(consts.AP_DETAIL_STRENGTH)),
-        xyz_grid.AxisOption("[Langevin dyn] CFG Alpha", float, apply_field("exs_ld_cfg_alpha")),
-        xyz_grid.AxisOption("[Langevin dyn] CFG Beta", float, apply_field("exs_ld_cfg_beta")),
-        xyz_grid.AxisOption("[Langevin dyn] CFG Gamma", float, apply_field("exs_ld_cfg_gamma")),
-        xyz_grid.AxisOption("[Langevin dyn] Langevin Strength", float, apply_field("exs_ld_langevin_strength")),
+        xyz_grid.AxisOption("[Langevin Euler] Langevin Strength", float, apply_field(consts.LANGEVIN_STRENGTH)),
     ]
 
     xyz_grid.axis_options.extend(extra_axis_options)

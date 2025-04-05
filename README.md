@@ -6,6 +6,7 @@ The source for these new samplers come from projects created by [Koishi-Star](ht
 ## Features
 
 - Additional samplers integrated into the Forge WebUI.
+  - Adaptive Progressive (Experimental)
   - Euler Max
   - Euler Negative
   - Euler Dy
@@ -14,11 +15,9 @@ The source for these new samplers come from projects created by [Koishi-Star](ht
   - Euler SMEA Dy
   - Euler SMEA Dy Negative
   - Kohaku LoNyu Yog
-  - ~~Kohaku LoNyu Yog CFG++~~ (Not working correctly)
+  - Langevin Euler (Experimental)
   - Res Multistep
   - Res Multistep CFG++
-  - Res Multistep Ancestral
-  - Res Multistep Ancestral CFG++
  
 ### Comparison
 

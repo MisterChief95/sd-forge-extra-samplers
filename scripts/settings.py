@@ -51,34 +51,14 @@ def on_settings():
     )
 
     opts.add_option(
-        "exs_ld_cfg_alpha",
-        OptionInfo(
-            0.3,
-            "CFG Alpha",
-            component=gr.Slider,
-            component_args={"minimum": 0.0, "maximum": 1.0, "step": 0.01},
-            section=section,
-        ).info("Controls the maximum increase in CFG scale that can occur during sampling."),
-    )
-    opts.add_option(
-        "exs_ld_cfg_beta",
-        OptionInfo(
-            2.0,
-            "CFG Beta",
-            component=gr.Slider,
-            component_args={"minimum": 0.0, "maximum": 5.0, "step": 0.01},
-            section=section,
-        ).info("Controls how quickly CFG changes occur and where in the diffusion process they're concentrated."),
-    )
-    opts.add_option(
-        "exs_ld_cfg_gamma",
+        consts.LANGEVIN_STRENGTH,
         OptionInfo(
             0.1,
-            "CFG Gamma",
+            "Langevin Strength",
             component=gr.Slider,
             component_args={"minimum": 0.0, "maximum": 1.0, "step": 0.01},
             section=section,
-        ).info("Controls reduction of CFG at very low noise levels (end of sampling)."),
+        ),
     )
 
 
