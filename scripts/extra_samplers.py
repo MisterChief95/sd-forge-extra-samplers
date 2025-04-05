@@ -32,7 +32,7 @@ def build_constructor(sampler_name):
 euler_sampler_list = [
     (
         "Adaptive Progressive",
-        "sample_adaptive_progress_sampler",
+        "sample_adaptive_progressive",
         ["k_adaptive_progress_sampler"],
         {"scheduler": "sgm_uniform", "uses_ensd": True},
     ),
@@ -50,7 +50,8 @@ euler_sampler_list = [
         "sample_langevin_euler",
         ["k_langevin_euler"],
         {"scheduler": "sgm_uniform"},
-    )("Res Multistep", "sample_res_multistep", ["k_res_multistep"], {"scheduler": "sgm_uniform"}),
+    ),
+    ("Res Multistep", "sample_res_multistep", ["k_res_multistep"], {"scheduler": "sgm_uniform"}),
     (
         "Res Multistep CFG++",
         "sample_res_multistep_cfgpp",

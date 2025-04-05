@@ -7,6 +7,7 @@ The source for these new samplers come from projects created by [Koishi-Star](ht
 
 - Additional samplers integrated into the Forge WebUI.
   - Adaptive Progressive (Experimental)
+      - Note: Decrease detail strength as 
   - Euler Max
   - Euler Negative
   - Euler Dy
@@ -18,6 +19,8 @@ The source for these new samplers come from projects created by [Koishi-Star](ht
   - Langevin Euler (Experimental)
   - Res Multistep
   - Res Multistep CFG++
+
+Adds a new extension accordian titled "Extra Samplers" to allow adjusting certain samplers.
  
 ### Comparison
 
@@ -45,6 +48,9 @@ Because of how these Dy/SMEA samplers work, they are not guaranteed to function 
 If you get strange outputs or artifcating in these cases, try using a different sampler after generating the base image.
 
 Euler Max seems to work fine in just about all scenarios from my own testing.
+
+Adaptive Progressive and Langevin Euler are samplers of my own I've been experimenting with. The former uses Euler A-like sampling initially then switches to DPM++ 2M and finally a detailing stage as the sampling progresses.
+Langevin Euler is an SDE sampler that uses Langevin dynamics to add noise as sampling progresses.
 
 ## Contributing
 

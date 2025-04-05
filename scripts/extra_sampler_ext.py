@@ -84,8 +84,7 @@ class ExtraSamplerExtension(scripts.Script):
                     inputs=[detail_strength],
                 )
 
-            with gr.Row():
-                gr.Markdown("Langevin Strength")
+            with gr.Accordion(label="Langevin Euler", open=False):
                 langevin_strength = gr.Slider(
                     minimum=0.0,
                     maximum=1.0,
@@ -119,6 +118,7 @@ class ExtraSamplerExtension(scripts.Script):
         dpm_2m_end: float,
         ancestral_eta: float,
         detail_strength: float,
+        langevin_strength: float,
         batch_number: int,
         prompts: list[str],
         seeds: list[int],
@@ -135,4 +135,4 @@ class ExtraSamplerExtension(scripts.Script):
                 },
             )
         elif p.sampler_name == "Langevin Euler":
-            self.get_values_and_apply(p, {consts.LANGEVIN_STRENGTH: detail_strength})
+            self.get_values_and_apply(p, {consts.LANGEVIN_STRENGTH: langevin_strength})
