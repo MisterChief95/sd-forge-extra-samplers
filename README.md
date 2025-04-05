@@ -7,7 +7,6 @@ The source for these new samplers come from projects created by [Koishi-Star](ht
 
 - Additional samplers integrated into the Forge WebUI.
   - Adaptive Progressive (Experimental)
-      - Note: Decrease detail strength as 
   - Euler Max
   - Euler Negative
   - Euler Dy
