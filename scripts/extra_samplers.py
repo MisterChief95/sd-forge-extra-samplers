@@ -32,27 +32,9 @@ def build_constructor(sampler_name):
 euler_sampler_list = [
     (
         "Adaptive Progressive",
-        "sample_adaptive_progress_sampler",
+        "sample_adaptive_progressive",
         ["k_adaptive_progress_sampler"],
         {"scheduler": "sgm_uniform", "uses_ensd": True},
-    ),
-    (
-        "DPM++ 2M a",
-        "sample_dpmpp_2m_ancestral",
-        ["k_dpmpp_2m_ancestral"],
-        {"scheduler": "karras", "uses_ensd": True},
-    ),
-    (
-        "Euler a 2M SDE",
-        "sample_euler_ancestral_2m_sde",
-        ["k_euler_a_2m_sde"],
-        {"scheduler": "exponential", "brownian_noise": True},
-    ),
-    (
-        "Euler a 2M SDE CFG++",
-        "sample_euler_ancestral_2m_sde_cfgpp",
-        ["k_euler_a_2m_sde_cfgpp"],
-        {"scheduler": "exponential", "brownian_noise": True},
     ),
     ("Euler Max", "sample_euler_max", ["k_euler_max"], {}),
     ("Euler Negative", "sample_euler_negative", ["k_euler_negative"], {}),
@@ -64,21 +46,9 @@ euler_sampler_list = [
     ("Heun Ancestral", "sample_heun_ancestral", ["k_heun_ancestral"], {"uses_ensd": True}),
     ("Kohaku LoNyu Yog", "sample_kohaku_lonyu_yog", ["k_kohaku_lonyu_yog"], {}),
     (
-        "Langevin Euler Dyn",
-        "sample_langevin_euler_dynamic_cfg",
-        ["k_langevin_euler_dyn"],
-        {"scheduler": "sgm_uniform"},
-    ),
-    (
-        "Langevin Ancestral Euler Dyn",
-        "sample_langevin_ancestral_euler_dynamic_cfg",
-        ["k_langevin_ancestral_euler_dyn"],
-        {"scheduler": "sgm_uniform", "uses_ensd": True},
-    ),
-    (
-        "Langevin PLMS Dyn",
-        "sample_langevin_plms_dynamic_cfg",
-        ["k_langevin_plms_dyn"],
+        "Langevin Euler",
+        "sample_langevin_euler",
+        ["k_langevin_euler"],
         {"scheduler": "sgm_uniform"},
     ),
     ("Res Multistep", "sample_res_multistep", ["k_res_multistep"], {"scheduler": "sgm_uniform"}),
@@ -87,18 +57,6 @@ euler_sampler_list = [
         "sample_res_multistep_cfgpp",
         ["k_res_multistep_cfgpp"],
         {"scheduler": "sgm_uniform"},
-    ),
-    (
-        "Res Multistep Ancestral",
-        "sample_res_multistep_ancestral",
-        ["k_res_multistep_a"],
-        {"scheduler": "sgm_uniform", "uses_ensd": True},
-    ),
-    (
-        "Res Multistep Ancestral CFG++",
-        "sample_res_multistep_ancestral_cfgpp",
-        ["k_res_multistep_a_cgfpp"],
-        {"scheduler": "sgm_uniform", "uses_ensd": True},
     ),
 ]
 

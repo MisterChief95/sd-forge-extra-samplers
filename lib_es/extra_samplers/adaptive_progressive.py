@@ -8,7 +8,7 @@ import lib_es.const as consts
 
 
 @torch.no_grad()
-def adaptive_progressive_sampler(
+def sample_adaptive_progressive(
     model,
     x,
     sigmas,
@@ -220,23 +220,3 @@ def calc_phase_bounds(steps: int, custom_euler_end: float = 0.25, custom_dpm_end
         dpm_end = min(1.0, euler_end + 0.1)
 
     return euler_end, dpm_end
-
-
-@torch.no_grad()
-def sample_adaptive_progress_sampler(
-    model,
-    x,
-    sigmas,
-    extra_args=None,
-    callback=None,
-    disable=None,
-    s_churn=0.0,
-    s_tmin=0.0,
-    s_tmax=float("inf"),
-    eta=1.0,
-    s_noise=1.0,
-    noise_sampler=None,
-):
-    return adaptive_progressive_sampler(
-        model, x, sigmas, extra_args, callback, disable, s_churn, s_tmin, s_tmax, s_noise, noise_sampler
-    )
