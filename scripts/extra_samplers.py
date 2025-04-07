@@ -43,6 +43,8 @@ euler_sampler_list = [
     ("Euler SMEA", "sample_euler_smea", ["k_euler_smea"], {}),
     ("Euler SMEA Dy", "sample_euler_smea_dy", ["k_euler_smea_dy"], {}),
     ("Euler SMEA Dy Negative", "sample_euler_smea_dy_negative", ["k_euler_smea_dy_negative"], {}),
+    ("Extended Reverse SDE", "sample_er_sde", ["k_er_sde"], {"uses_ensd": True}),
+    ("Gradient Estimation", "sample_gradient_estimation", ["k_gradient_estimation"], {}),
     ("Heun Ancestral", "sample_heun_ancestral", ["k_heun_ancestral"], {"uses_ensd": True}),
     ("Kohaku LoNyu Yog", "sample_kohaku_lonyu_yog", ["k_kohaku_lonyu_yog"], {}),
     (
@@ -51,12 +53,14 @@ euler_sampler_list = [
         ["k_langevin_euler"],
         {"scheduler": "sgm_uniform"},
     ),
-    ("Res Multistep", "sample_res_multistep", ["k_res_multistep"], {"scheduler": "sgm_uniform"}),
+    ("Res Multistep", "sample_res_multistep", ["k_res_multistep"], {}),
+    ("Res Multistep CFG++", "sample_res_multistep_cfg_pp", ["k_res_multistep_cfg_pp"], {}),
+    ("Res Multistep Ancestral", "sample_res_multistep_ancestral", ["k_res_multistep_ancestral"], {"uses_ensd": True},),
     (
-        "Res Multistep CFG++",
-        "sample_res_multistep_cfgpp",
-        ["k_res_multistep_cfgpp"],
-        {"scheduler": "sgm_uniform"},
+        "Res Multistep Ancestral CFG++",
+        "sample_res_multistep_ancestral_cfg_pp",
+        ["k_res_multistep_ancestral_cfg_pp"],
+        {"uses_ensd": True},
     ),
 ]
 

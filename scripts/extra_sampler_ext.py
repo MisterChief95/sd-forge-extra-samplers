@@ -98,19 +98,45 @@ class ExtraSamplerExtension(scripts.Script):
                     inputs=[langevin_strength],
                 )
 
+            with gr.Accordion(label="Gradient Estimation", open=False):
+                gr.Markdown("Gradient estimation sampler.")
+                gr.Markdown("Gamma value for gradient estimation.")
+                gamma = gr.Slider(
+                    minimum=0.0,
+                    maximum=10.0,
+                    step=0.1,
+                    value=from_setting_or_default(consts.GE_GAMMA, 2.0),
+                    label="Gamma",
+                )
+                gamma.change(fn=lambda value: on_change_update_setting(consts.GE_GAMMA, value), inputs=[gamma])
+
+            with gr.Accordion(label="Extended Reverse SDE", open=False):
+                gr.Markdown("Extended reverse SDE sampler.")
+                gr.Markdown("Max stage for extended reverse SDE.")
+                max_stage = gr.Slider(
+                    minimum=1,
+                    maximum=3,
+                    step=1,
+                    value=from_setting_or_default(consts.MAX_STAGE, 3),
+                    label="Max Stage",
+                )
+                max_stage.change(fn=lambda value: on_change_update_setting(consts.MAX_STAGE, value), inputs=[max_stage])
+
         return [
             euler_a_end,
             dpm_2m_end,
             ancestral_eta,
             detail_strength,
             langevin_strength,
+            max_stage,
+            gamma,
         ]
 
     def get_values_and_apply(self, p: StableDiffusionProcessing, values: dict):
         for key, value in values.items():
             value = self.xyz_cache.pop(key, value)
             setattr(p, key, value)
-            # p.extra_generation_params[key] = value
+            p.extra_generation_params[key] = value
 
     def process_batch(
         self,
@@ -120,6 +146,8 @@ class ExtraSamplerExtension(scripts.Script):
         ancestral_eta: float,
         detail_strength: float,
         langevin_strength: float,
+        max_stage: int,
+        gamma: float,
         batch_number: int,
         prompts: list[str],
         seeds: list[int],
@@ -137,3 +165,7 @@ class ExtraSamplerExtension(scripts.Script):
             )
         elif p.sampler_name == "Langevin Euler":
             self.get_values_and_apply(p, {consts.LANGEVIN_STRENGTH: langevin_strength})
+        elif p.sampler_name == "Gradient Estimation":
+            self.get_values_and_apply(p, {consts.GE_GAMMA: gamma})
+        elif p.sampler_name == "Extended Reverse SDE":
+            self.get_values_and_apply(p, {consts.MAX_STAGE: max_stage})

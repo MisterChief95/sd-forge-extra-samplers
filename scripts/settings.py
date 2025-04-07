@@ -61,5 +61,27 @@ def on_settings():
         ),
     )
 
+    opts.add_option(
+        consts.MAX_STAGE,
+        OptionInfo(
+            3,
+            "Extended Reverse Time Max Stage",
+            component=gr.Slider,
+            component_args={"minimum": 1, "maximum": 3, "step": 1},
+            section=section,
+        ),
+    )
+
+    opts.add_option(
+        consts.GE_GAMMA,
+        OptionInfo(
+            2.0,
+            "Gradient Estimation Gamma",
+            component=gr.Slider,
+            component_args={"minimum": 1.0, "maximum": 5.0, "step": 0.1},
+            section=section,
+        ),
+    )
+
 
 on_ui_settings(on_settings)
