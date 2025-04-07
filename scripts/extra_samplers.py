@@ -55,12 +55,17 @@ euler_sampler_list = [
     ),
     ("Res Multistep", "sample_res_multistep", ["k_res_multistep"], {}),
     ("Res Multistep CFG++", "sample_res_multistep_cfg_pp", ["k_res_multistep_cfg_pp"], {}),
-    ("Res Multistep Ancestral", "sample_res_multistep_ancestral", ["k_res_multistep_ancestral"], {"uses_ensd": True},),
+    (
+        "Res Multistep Ancestral",
+        "sample_res_multistep_ancestral",
+        ["k_res_multistep_ancestral"],
+        {"uses_ensd": True, "scheduler": "sgm_uniform"},
+    ),
     (
         "Res Multistep Ancestral CFG++",
         "sample_res_multistep_ancestral_cfg_pp",
         ["k_res_multistep_ancestral_cfg_pp"],
-        {"uses_ensd": True},
+        {"uses_ensd": True, "scheduler": "sgm_uniform"},
     ),
 ]
 

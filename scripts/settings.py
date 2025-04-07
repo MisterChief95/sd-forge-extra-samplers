@@ -62,7 +62,7 @@ def on_settings():
     )
 
     opts.add_option(
-        consts.MAX_STAGE,
+        consts.ER_MAX_STAGE,
         OptionInfo(
             3,
             "Extended Reverse Time Max Stage",

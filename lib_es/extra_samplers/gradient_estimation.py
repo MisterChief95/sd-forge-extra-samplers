@@ -3,14 +3,18 @@ from tqdm import trange
 
 from k_diffusion.sampling import to_d
 
+import lib_es.const as consts
+
 
 # From ComfyUI
 @torch.no_grad()
-def sample_gradient_estimation(model, x, sigmas, extra_args=None, callback=None, disable=None, ge_gamma=2.0):
+def sample_gradient_estimation(model, x, sigmas, extra_args=None, callback=None, disable=None):
     """Gradient-estimation sampler. Paper: https://openreview.net/pdf?id=o2ND9v0CeK"""
     extra_args = {} if extra_args is None else extra_args
     s_in = x.new_ones([x.shape[0]])
     old_d = None
+
+    ge_gamma: float = getattr(model.p, consts.GE_GAMMA, 2.0)
 
     for i in trange(len(sigmas) - 1, disable=disable):
         denoised = model(x, sigmas[i] * s_in, **extra_args)

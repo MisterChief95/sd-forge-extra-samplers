@@ -117,7 +117,7 @@ class ExtraSamplerExtension(scripts.Script):
                     minimum=1,
                     maximum=3,
                     step=1,
-                    value=from_setting_or_default(consts.MAX_STAGE, 3),
+                    value=from_setting_or_default(consts.ER_MAX_STAGE, 3),
                     label="Max Stage",
                 )
                 max_stage.change(fn=lambda value: on_change_update_setting(consts.MAX_STAGE, value), inputs=[max_stage])
@@ -168,4 +168,4 @@ class ExtraSamplerExtension(scripts.Script):
         elif p.sampler_name == "Gradient Estimation":
             self.get_values_and_apply(p, {consts.GE_GAMMA: gamma})
         elif p.sampler_name == "Extended Reverse SDE":
-            self.get_values_and_apply(p, {consts.MAX_STAGE: max_stage})
+            self.get_values_and_apply(p, {consts.ER_MAX_STAGE: max_stage})

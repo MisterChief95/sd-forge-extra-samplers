@@ -1,7 +1,25 @@
 import torch
 from tqdm import trange
 
-from k_diffusion.sampling import default_noise_sampler
+import lib_es.const as consts
+
+
+# From ComfyUI
+def default_noise_sampler(x, seed=None):
+    """
+    Default noise sampler for the extended reverse SDE solver.
+    Generates Gaussian noise based on the input tensor's shape and device.
+    If a seed is provided, it uses that seed for reproducibility.
+    """
+    if seed is not None:
+        generator = torch.Generator(device=x.device)
+        generator.manual_seed(seed)
+    else:
+        generator = None
+
+    return lambda sigma, sigma_next: torch.randn(
+        x.size(), dtype=x.dtype, layout=x.layout, device=x.device, generator=generator
+    )
 
 
 # From ComfyUI
@@ -16,7 +34,6 @@ def sample_er_sde(
     s_noise=1.0,
     noise_sampler=None,
     noise_scaler=None,
-    max_stage=3,
 ):
     """
     Extended Reverse-Time SDE solver (VE ER-SDE-Solver-3). Arxiv: https://arxiv.org/abs/2309.06169.
@@ -26,6 +43,8 @@ def sample_er_sde(
     seed = extra_args.get("seed", None)
     noise_sampler = default_noise_sampler(x, seed=seed) if noise_sampler is None else noise_sampler
     s_in = x.new_ones([x.shape[0]])
+
+    max_stage: int = getattr(model.p, consts.ER_MAX_STAGE, 3)
 
     def default_noise_scaler(sigma):
         return sigma * ((sigma**0.3).exp() + 10.0)
