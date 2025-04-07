@@ -5,3 +5,6 @@ AP_ANCESTRAL_ETA = "exs_ap_ancestral_eta"
 AP_DETAIL_STRENGTH = "exs_ap_detail_strength"
 
 LANGEVIN_STRENGTH = "exs_langevin_strength"
+
+ER_MAX_STAGE = "er_max_stage"
+GE_GAMMA = "ge_gamma"

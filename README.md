@@ -14,11 +14,15 @@ The source for these new samplers come from projects created by [Koishi-Star](ht
   - Euler SMEA
   - Euler SMEA Dy
   - Euler SMEA Dy Negative
+  - Extended Reverse Time SDE
+  - Gradient Estimation
   - Heun Ancestral
   - Kohaku LoNyu Yog
   - Langevin Euler (Experimental)
   - Res Multistep
   - Res Multistep CFG++
+  - Res Multistep Ancestral
+  - Res Multistep Ancestral CFG++
 
 Adds a new extension accordian titled "Extra Samplers" to allow adjusting certain samplers.
  
@@ -74,7 +78,14 @@ If any of these are incorrect please let me know!
 - [licyk](https://github.com/licyk/advanced_euler_sampler_extension/tree/main) for the following sampler contributions:
   - Euler Max
   - Euler SMEA
-- [Panchovix](https://github.com/Panchovix/stable-diffusion-webui-reForge)
+- [Panchovix](https://github.com/Panchovix/stable-diffusion-webui-reForge) for the following sampler contributions:
   - Res Multistep
   - Res Multistep CFG++
+- [comfyanonymous](https://github.com/comfyanonymous/ComfyUI) for the following sampler contributions:
+  - Gradient Estimation
+  - Extended Reverse Time SDE
+  - Res Multistep
+  - Res Multistep CFG++
+  - Res Multistep Ancestral
+  - Res Multistep Ancestral CFG++
 - Special thanks to the contributors of this repository.
