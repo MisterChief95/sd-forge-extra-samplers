@@ -83,5 +83,36 @@ def on_settings():
         ),
     )
 
+    opts.add_option(
+        consts.GE_GAMMA_OFFSET,
+        OptionInfo(
+            0.0,
+            "Gradient Estimation Gamma Offset",
+            component=gr.Slider,
+            component_args={"minimum": -5.0, "maximum": 5.0, "step": 0.1},
+            section=section,
+        ),
+    )
+
+    opts.add_option(
+        consts.GE_USE_ADAPTIVE_STEPS,
+        OptionInfo(
+            True,
+            "Use Adaptive Steps",
+            component=gr.Checkbox,
+            section=section,
+        ),
+    )
+
+    opts.add_option(
+        consts.GE_USE_TIMESTEP_ADAPTIVE_GAMMA,
+        OptionInfo(
+            False,
+            "Use Timestep Adaptive Gamma",
+            component=gr.Checkbox,
+            section=section,
+        ),
+    )
+
 
 on_ui_settings(on_settings)
