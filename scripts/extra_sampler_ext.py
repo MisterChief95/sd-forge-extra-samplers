@@ -136,7 +136,10 @@ class ExtraSamplerExtension(scripts.Script):
 
                 # Update interactivity when adaptive steps checkbox changes
                 adaptive_steps.change(
-                    fn=lambda value: (not value, value), inputs=[adaptive_steps], outputs=[gamma, gamma_offset], js=None
+                    fn=lambda value: (gr.Slider(interactive=not value), gr.Slider(interactive=value)),
+                    inputs=[adaptive_steps],
+                    outputs=[gamma, gamma_offset],
+                    js=None,
                 ).then(
                     fn=lambda value: on_change_update_setting(consts.GE_USE_ADAPTIVE_STEPS, value),
                     inputs=[adaptive_steps],
