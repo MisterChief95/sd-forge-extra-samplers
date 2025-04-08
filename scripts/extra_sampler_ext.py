@@ -99,17 +99,17 @@ class ExtraSamplerExtension(scripts.Script):
                 )
 
             with gr.Accordion(label="Gradient Estimation", open=False):
-                use_adaptive_steps = from_setting_or_default(consts.GE_USE_ADAPTIVE_STEPS, True)
+                use_adaptive_steps = from_setting_or_default(consts.GE_USE_ADAPTIVE_STEPS, False)
 
                 adaptive_steps = gr.Checkbox(
                     label="Use Adaptive Steps",
                     value=use_adaptive_steps,
-                    info="Use adaptive steps for gamma calculation.",
+                    info="Modify the number of steps based on the noise schedule.",
                 )
                 use_timestep_adaptive_gamma = gr.Checkbox(
-                    label="Timestep Adaptive Gamma",
+                    label="Timestep-Based Adaptive Gamma",
                     value=from_setting_or_default(consts.GE_USE_TIMESTEP_ADAPTIVE_GAMMA, False),
-                    info="Use timestep adaptive gamma to adjust gamma during generation.",
+                    info="Adjust gamma during generation.",
                 )
                 gamma = gr.Slider(
                     minimum=0.0,
