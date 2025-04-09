@@ -6,7 +6,7 @@ from .euler_smea_dy import sample_euler_smea_dy
 from .euler_smea_dy_negative import sample_euler_smea_dy_negative
 from .euler_max import sample_euler_max
 from .euler_negative import sample_euler_negative
-from .extended_reverse_sde import sample_er_sde
+from .extended_reverse_time import sample_er_sde
 from .gradient_estimation import sample_gradient_estimation
 from .heun_ancestral import sample_heun_ancestral
 from .kohaku_lonyu_yog import sample_kohaku_lonyu_yog
