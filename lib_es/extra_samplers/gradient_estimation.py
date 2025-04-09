@@ -21,28 +21,27 @@ def compute_optimal_gamma(steps: int, adaptive: bool = True) -> float:
         Optimal gamma value
     """
     if not adaptive:
-        return 2.0
+        return consts.GE_DEFAULT_GAMMA
 
-    # Default values based on paper's findings
-    step_points = [10, 20, 50, 100]
-    gamma_points = [1.5, 1.8, 2.2, 2.4]
+    # Define min and max values
+    min_steps, max_steps = 10, 100
+    min_gamma, max_gamma = 1.5, 2.6
 
-    if steps <= step_points[0]:
-        return gamma_points[0]
-    elif steps >= step_points[-1]:
-        return gamma_points[-1]
-    else:
-        # Find which segment we're in
-        for i in range(len(step_points) - 1):
-            if step_points[i] <= steps < step_points[i + 1]:
-                # Linear interpolation within segment
-                t = (steps - step_points[i]) / (step_points[i + 1] - step_points[i])
-                # Apply easing function for smoother transitions
-                t = 1 - (1 - t) ** 1.5
-                return gamma_points[i] + t * (gamma_points[i + 1] - gamma_points[i])
+    # Handle edge cases
+    if steps <= min_steps:
+        return min_gamma
+    elif steps >= max_steps:
+        return max_gamma
 
-    # Fallback
-    return 2.0
+    # Apply logarithmic scaling
+    # log(steps/min_steps) / log(max_steps/min_steps) gives a value from 0 to 1
+    # that increases logarithmically with steps
+    log_factor = torch.log(torch.tensor(steps / min_steps)) / torch.log(torch.tensor(max_steps / min_steps))
+
+    # Convert the logarithmic factor to gamma value
+    gamma = min_gamma + log_factor * (max_gamma - min_gamma)
+
+    return float(gamma)
 
 
 def validate_schedule(sigmas: torch.Tensor, eta: float = 0.1, nu: float = 2.0) -> bool:
@@ -139,9 +138,11 @@ def sample_gradient_estimation(
     if use_adaptive_steps:
         # Compute optimal gamma based on the number of steps
         # and add the offset if specified
-        ge_gamma = compute_optimal_gamma(steps, use_adaptive_steps) + getattr(model.p, consts.GE_GAMMA_OFFSET, 0.0)
+        ge_gamma = compute_optimal_gamma(steps, use_adaptive_steps) + getattr(
+            model.p, consts.GE_GAMMA_OFFSET, consts.GE_DEFAULT_GAMMA_OFFSET
+        )
     else:
-        ge_gamma = getattr(model.p, consts.GE_GAMMA, 2.0)
+        ge_gamma = getattr(model.p, consts.GE_GAMMA, consts.GE_DEFAULT_GAMMA)
 
     # Initialize timestep-adaptive gamma values if needed
     timestep_adaptive_gamma = getattr(model.p, consts.GE_USE_TIMESTEP_ADAPTIVE_GAMMA, False)
@@ -150,7 +151,7 @@ def sample_gradient_estimation(
         # Higher gamma at the beginning, lower toward the end
         # This is a heuristic based on the observation that early steps benefit more
         # from aggressive gradient correction
-        gammas = torch.linspace(ge_gamma * 1.2, ge_gamma * 0.9, steps)
+        gammas = torch.linspace(ge_gamma * 1.2, ge_gamma * 0.8, steps)
 
     # Main sampling loop
     for i in trange(len(sigmas) - 1, disable=disable):

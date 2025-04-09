@@ -112,19 +112,19 @@ class ExtraSamplerExtension(scripts.Script):
                     info="Adjust gamma during generation.",
                 )
                 gamma = gr.Slider(
-                    minimum=0.0,
-                    maximum=3.0,
+                    minimum=consts.GE_MIN_GAMMA,
+                    maximum=consts.GE_MAX_GAMMA,
                     step=0.05,
-                    value=from_setting_or_default(consts.GE_GAMMA, 2.0),
+                    value=from_setting_or_default(consts.GE_GAMMA, consts.GE_DEFAULT_GAMMA),
                     label="Gamma",
                     info="Gamma value for gradient estimation. Higher values increase the amount of noise.",
                     interactive=not use_adaptive_steps,
                 )
                 gamma_offset = gr.Slider(
-                    minimum=-2.0,
-                    maximum=2.0,
+                    minimum=consts.GE_MIN_GAMMA_OFFSET,
+                    maximum=consts.GE_MAX_GAMMA_OFFSET,
                     step=0.05,
-                    value=from_setting_or_default(consts.GE_GAMMA_OFFSET, 0.0),
+                    value=from_setting_or_default(consts.GE_GAMMA_OFFSET, consts.GE_DEFAULT_GAMMA_OFFSET),
                     label="Gamma Offset",
                     info="Offset to add to the calculated gamma when using adaptive steps.",
                     interactive=use_adaptive_steps,

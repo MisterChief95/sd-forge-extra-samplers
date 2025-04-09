@@ -75,10 +75,10 @@ def on_settings():
     opts.add_option(
         consts.GE_GAMMA,
         OptionInfo(
-            2.0,
+            consts.GE_DEFAULT_GAMMA,
             "Gradient Estimation Gamma",
             component=gr.Slider,
-            component_args={"minimum": 1.0, "maximum": 5.0, "step": 0.1},
+            component_args={"minimum": consts.GE_MIN_GAMMA, "maximum": consts.GE_MAX_GAMMA, "step": 0.1},
             section=section,
         ),
     )
@@ -86,10 +86,10 @@ def on_settings():
     opts.add_option(
         consts.GE_GAMMA_OFFSET,
         OptionInfo(
-            0.0,
+            consts.GE_DEFAULT_GAMMA_OFFSET,
             "Gradient Estimation Gamma Offset",
             component=gr.Slider,
-            component_args={"minimum": -5.0, "maximum": 5.0, "step": 0.1},
+            component_args={"minimum": consts.GE_MIN_GAMMA_OFFSET, "maximum": consts.GE_MAX_GAMMA_OFFSET, "step": 0.1},
             section=section,
         ),
     )
@@ -97,7 +97,7 @@ def on_settings():
     opts.add_option(
         consts.GE_USE_ADAPTIVE_STEPS,
         OptionInfo(
-            True,
+            False,
             "Use Adaptive Steps",
             component=gr.Checkbox,
             section=section,
