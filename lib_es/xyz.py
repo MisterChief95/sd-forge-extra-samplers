@@ -15,8 +15,10 @@ def _grid_reference():
 
 
 def xyz_support(cache: dict):
-    def apply_field(field):
+    def apply_field(field, is_bool=False):
         def _(p, x, xs):
+            if is_bool:
+                x = True if x.lower() == "true" else False
             cache.update({field: x})
 
         return _
@@ -32,12 +34,14 @@ def xyz_support(cache: dict):
         xyz_grid.AxisOption("[Gradient Estimation] GE Gamma Offset", float, apply_field(consts.GE_GAMMA_OFFSET)),
         xyz_grid.AxisOption("[Gradient Estimation] GE Gamma", float, apply_field(consts.GE_GAMMA)),
         xyz_grid.AxisOption(
-            "[Gradient Estimation] GE Use Adaptive Steps", bool, apply_field(consts.GE_USE_ADAPTIVE_STEPS)
+            "[Gradient Estimation] GE Use Adaptive Steps",
+            str,
+            apply_field(consts.GE_USE_ADAPTIVE_STEPS, is_bool=True),
         ),
         xyz_grid.AxisOption(
             "[Gradient Estimation] GE Use Timestep Adaptive Gamma",
-            bool,
-            apply_field(consts.GE_USE_TIMESTEP_ADAPTIVE_GAMMA),
+            str,
+            apply_field(consts.GE_USE_TIMESTEP_ADAPTIVE_GAMMA, is_bool=True),
         ),
         xyz_grid.AxisOption("[Langevin Euler] Langevin Strength", float, apply_field(consts.LANGEVIN_STRENGTH)),
     ]
