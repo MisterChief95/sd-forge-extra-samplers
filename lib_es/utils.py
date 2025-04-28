@@ -157,3 +157,13 @@ def sampler_metadata(name: str, extra_params: dict = {}):
         return func
 
     return decorator
+
+
+def scheduler_metadata(name: str, alias: str, need_inner_model: bool = False):
+    def decorator(func):
+        func.name = name
+        func.alias = alias
+        func.need_inner_model = need_inner_model
+        return func
+
+    return decorator
