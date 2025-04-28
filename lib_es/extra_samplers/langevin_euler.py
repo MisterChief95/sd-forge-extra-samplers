@@ -3,8 +3,13 @@ from tqdm.auto import trange
 from k_diffusion.sampling import default_noise_sampler, to_d
 
 import lib_es.const as consts
+from lib_es.utils import sampler_metadata
 
 
+@sampler_metadata(
+    "Langevin Euler",
+    {"scheduler": "sgm_uniform"},
+)
 @torch.no_grad()
 def sample_langevin_euler(
     model,

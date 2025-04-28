@@ -4,7 +4,10 @@ from k_diffusion.sampling import default_noise_sampler, get_ancestral_step, to_d
 
 from tqdm.auto import trange
 
+from lib_es.utils import sampler_metadata
 
+
+@sampler_metadata("Kohaku LoNyu Yog")
 @torch.no_grad()
 def sample_kohaku_lonyu_yog(
     model,

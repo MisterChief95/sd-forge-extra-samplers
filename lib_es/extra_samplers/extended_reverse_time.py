@@ -2,6 +2,7 @@ import torch
 from tqdm import trange
 
 import lib_es.const as consts
+from lib_es.utils import sampler_metadata
 
 
 # From ComfyUI
@@ -23,6 +24,10 @@ def default_noise_sampler(x, seed=None):
 
 
 # From ComfyUI
+@sampler_metadata(
+    "Extended Reverse SDE",
+    {"uses_ensd": True, "scheduler": "sgm_uniform"},
+)
 @torch.no_grad()
 def sample_er_sde(
     model,

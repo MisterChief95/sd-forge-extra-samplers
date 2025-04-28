@@ -4,9 +4,11 @@ from k_diffusion.sampling import to_d
 
 from tqdm.auto import trange
 
-from .utils import dy_sampling_step, smea_sampling_step
+from lib_es.utils import dy_sampling_step, smea_sampling_step
+from lib_es.utils import sampler_metadata
 
 
+@sampler_metadata("Euler SMEA Dy")
 @torch.no_grad()
 def sample_euler_smea_dy(
     model,

@@ -2,7 +2,13 @@ import torch
 from tqdm.auto import trange
 from k_diffusion.sampling import default_noise_sampler, get_ancestral_step, to_d
 
+from lib_es.utils import sampler_metadata
 
+
+@sampler_metadata(
+    "Heun Ancestral",
+    {"uses_ensd": True},
+)
 @torch.no_grad()
 def sample_heun_ancestral(
     model,

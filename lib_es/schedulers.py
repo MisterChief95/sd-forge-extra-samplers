@@ -1,11 +1,11 @@
-import lib_es.extra_schedulers
+from lib_es.extra_schedulers.log_linear import log_linear_scheduler
 
 import modules.sd_schedulers as sched
 
-
 extra_scheduler_list = [
-    sched.Scheduler("linear_log", "Linear Log", lib_es.extra_schedulers.log_linear_scheduler, need_inner_model=True),
+    sched.Scheduler("linear_log", "Linear Log", log_linear_scheduler, need_inner_model=True),
 ]
+
 
 def add_schedulers():
     """

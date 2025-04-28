@@ -5,6 +5,8 @@ from backend.modules.k_diffusion_extra import default_noise_sampler
 from backend.patcher.unet import UnetPatcher
 from k_diffusion.sampling import get_ancestral_step, to_d
 
+from lib_es.utils import sampler_metadata
+
 
 def sigma_fn(t):
     """
@@ -145,6 +147,10 @@ def res_multistep(
     return x
 
 
+@sampler_metadata(
+    "Res Multistep",
+    {"scheduler": "sgm_uniform"},
+)
 @torch.no_grad()
 def sample_res_multistep(
     model, x, sigmas, extra_args=None, callback=None, disable=None, s_noise=1.0, noise_sampler=None
@@ -163,6 +169,10 @@ def sample_res_multistep(
     )
 
 
+@sampler_metadata(
+    "Res Multistep CFG++",
+    {"scheduler": "sgm_uniform"},
+)
 @torch.no_grad()
 def sample_res_multistep_cfg_pp(
     model, x, sigmas, extra_args=None, callback=None, disable=None, s_noise=1.0, noise_sampler=None
@@ -181,6 +191,10 @@ def sample_res_multistep_cfg_pp(
     )
 
 
+@sampler_metadata(
+    "Res Multistep Ancestral",
+    {"uses_ensd": True, "scheduler": "sgm_uniform"},
+)
 @torch.no_grad()
 def sample_res_multistep_ancestral(
     model, x, sigmas, extra_args=None, callback=None, disable=None, eta=1.0, s_noise=1.0, noise_sampler=None
@@ -199,6 +213,10 @@ def sample_res_multistep_ancestral(
     )
 
 
+@sampler_metadata(
+    "Res Multistep Ancestral CFG++",
+    {"uses_ensd": True, "scheduler": "sgm_uniform"},
+)
 @torch.no_grad()
 def sample_res_multistep_ancestral_cfg_pp(
     model, x, sigmas, extra_args=None, callback=None, disable=None, eta=1.0, s_noise=1.0, noise_sampler=None

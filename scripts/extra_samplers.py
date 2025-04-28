@@ -6,10 +6,15 @@ import modules.scripts as scripts
 from modules.processing import StableDiffusionProcessing
 from modules.script_callbacks import on_ui_settings
 from modules.shared import OptionInfo, opts
-from modules.shared import opts
 
 import lib_es.const as consts
 from lib_es.xyz import xyz_support
+from lib_es.samplers import add_extra_samplers
+from lib_es.schedulers import add_schedulers
+
+
+add_extra_samplers()
+add_schedulers()
 
 
 def from_setting_or_default(key: str, default: None | Any) -> None | Any:

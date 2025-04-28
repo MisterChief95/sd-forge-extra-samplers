@@ -5,8 +5,13 @@ from k_diffusion.sampling import to_d, get_ancestral_step
 from backend.modules.k_diffusion_extra import default_noise_sampler
 
 import lib_es.const as consts
+from lib_es.utils import sampler_metadata
 
 
+@sampler_metadata(
+    "Adaptive Progressive",
+    {"scheduler": "sgm_uniform", "uses_ensd": True},
+)
 @torch.no_grad()
 def sample_adaptive_progressive(
     model,

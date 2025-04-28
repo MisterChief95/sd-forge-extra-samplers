@@ -5,7 +5,10 @@ from k_diffusion.sampling import to_d
 
 from tqdm.auto import trange
 
+from lib_es.utils import sampler_metadata
 
+
+@sampler_metadata("Euler Max")
 @torch.no_grad()
 def sample_euler_max(
     model,

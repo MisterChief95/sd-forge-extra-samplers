@@ -147,3 +147,13 @@ def dy_sampling_step(x, model, dt, sigma_hat, **extra_args):
         x = x_expanded
 
     return x
+
+
+def sampler_metadata(name: str, extra_params: dict = {}):
+    def decorator(func):
+        func.sampler_extra_params = extra_params
+        func.sampler_name = name
+        func.sampler_k_name = name.replace(" ", "_").lower()
+        return func
+
+    return decorator

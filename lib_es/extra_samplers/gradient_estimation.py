@@ -7,6 +7,7 @@ from k_diffusion.sampling import to_d
 from modules import errors
 
 import lib_es.const as consts
+from lib_es.utils import sampler_metadata
 
 
 def compute_optimal_gamma(steps: int, adaptive: bool = True) -> float:
@@ -85,6 +86,7 @@ def validate_schedule(sigmas: torch.Tensor, eta: float = 0.1, nu: float = 2.0) -
 
 
 @torch.no_grad()
+@sampler_metadata("Gradient Estimation", {"scheduler": "sgm_uniform"})
 def sample_gradient_estimation(
     model,
     x: torch.Tensor,
