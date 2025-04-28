@@ -23,15 +23,12 @@ The source for these new samplers come from projects created by [Koishi-Star](ht
   - Res Multistep CFG++
   - Res Multistep Ancestral
   - Res Multistep Ancestral CFG++
+ 
+- Additional Schedulers
+  - Linear Log 
 
 Adds a new extension accordian titled "Extra Samplers" to allow adjusting certain samplers.
- 
-### Comparison
 
-![comparison_1](https://github.com/user-attachments/assets/7f2aa2c1-1f13-42c3-bffe-531bf7a1ec1c)
-![comparison_2](https://github.com/user-attachments/assets/92eedf75-d073-4894-a232-e666f0949865)
-*Prompt: bustling town, sunset, street, cars  
-Steps: 30, Schedule type: Karras, CFG scale: 5, Seed: 4103437930, Size: 832x1216, Model: leosamsHelloworldXL_helloworldXL70*
 
 ## Installation
 
