@@ -16,7 +16,7 @@ def from_setting_or_default(key: str, default: None | Any) -> None | Any:
 
 
 def on_change_update_setting(key: str, value: Any) -> None:
-    opts.data[key] = value
+    opts.set(key, value)
 
 
 class ExtraSamplerExtension(scripts.Script):
@@ -99,16 +99,62 @@ class ExtraSamplerExtension(scripts.Script):
                 )
 
             with gr.Accordion(label="Gradient Estimation", open=False):
-                gr.Markdown("Gradient estimation sampler.")
-                gr.Markdown("Gamma value for gradient estimation.")
+                use_adaptive_steps = from_setting_or_default(consts.GE_USE_ADAPTIVE_STEPS, False)
+
+                adaptive_steps = gr.Checkbox(
+                    label="Use Adaptive Steps",
+                    value=use_adaptive_steps,
+                    info="Modify the number of steps based on the noise schedule.",
+                )
+                use_timestep_adaptive_gamma = gr.Checkbox(
+                    label="Timestep-Based Adaptive Gamma",
+                    value=from_setting_or_default(consts.GE_USE_TIMESTEP_ADAPTIVE_GAMMA, False),
+                    info="Adjust gamma during generation.",
+                )
                 gamma = gr.Slider(
-                    minimum=0.0,
-                    maximum=10.0,
-                    step=0.1,
-                    value=from_setting_or_default(consts.GE_GAMMA, 2.0),
+                    minimum=consts.GE_MIN_GAMMA,
+                    maximum=consts.GE_MAX_GAMMA,
+                    step=0.05,
+                    value=from_setting_or_default(consts.GE_GAMMA, consts.GE_DEFAULT_GAMMA),
                     label="Gamma",
+                    info="Gamma value for gradient estimation. Higher values increase the amount of noise.",
+                    interactive=not use_adaptive_steps,
+                )
+                gamma_offset = gr.Slider(
+                    minimum=consts.GE_MIN_GAMMA_OFFSET,
+                    maximum=consts.GE_MAX_GAMMA_OFFSET,
+                    step=0.05,
+                    value=from_setting_or_default(consts.GE_GAMMA_OFFSET, consts.GE_DEFAULT_GAMMA_OFFSET),
+                    label="Gamma Offset",
+                    info="Offset to add to the calculated gamma when using adaptive steps.",
+                    interactive=use_adaptive_steps,
                 )
                 gamma.change(fn=lambda value: on_change_update_setting(consts.GE_GAMMA, value), inputs=[gamma])
+                gamma_offset.change(
+                    fn=lambda value: on_change_update_setting(consts.GE_GAMMA_OFFSET, value), inputs=[gamma_offset]
+                )
+
+                # Update interactivity when adaptive steps checkbox changes
+                adaptive_steps.change(
+                    fn=lambda value: (gr.Slider(interactive=not value), gr.Slider(interactive=value)),
+                    inputs=[adaptive_steps],
+                    outputs=[gamma, gamma_offset],
+                    js=None,
+                ).then(
+                    fn=lambda value: on_change_update_setting(consts.GE_USE_ADAPTIVE_STEPS, value),
+                    inputs=[adaptive_steps],
+                )
+
+                use_timestep_adaptive_gamma.change(
+                    fn=lambda value: on_change_update_setting(consts.GE_USE_TIMESTEP_ADAPTIVE_GAMMA, value),
+                    inputs=[use_timestep_adaptive_gamma],
+                )
+
+                validate_schedule = gr.Checkbox(
+                    label="Validate Schedule",
+                    value=from_setting_or_default(consts.GE_VALIDATE_SCHEDULE, False),
+                    info="Validate the noise schedule (For debugging purposes).",
+                )
 
             with gr.Accordion(label="Extended Reverse SDE", open=False):
                 gr.Markdown("Extended reverse SDE sampler.")
@@ -129,7 +175,11 @@ class ExtraSamplerExtension(scripts.Script):
             detail_strength,
             langevin_strength,
             max_stage,
+            adaptive_steps,
+            use_timestep_adaptive_gamma,
             gamma,
+            gamma_offset,
+            validate_schedule,
         ]
 
     def get_values_and_apply(self, p: StableDiffusionProcessing, values: dict):
@@ -147,7 +197,11 @@ class ExtraSamplerExtension(scripts.Script):
         detail_strength: float,
         langevin_strength: float,
         max_stage: int,
+        use_adaptive_steps: bool,
+        use_timestep_adaptive_gamma: bool,
         gamma: float,
+        gamma_offset: float,
+        validate_schedule: bool,
         batch_number: int,
         prompts: list[str],
         seeds: list[int],
@@ -166,6 +220,15 @@ class ExtraSamplerExtension(scripts.Script):
         elif p.sampler_name == "Langevin Euler":
             self.get_values_and_apply(p, {consts.LANGEVIN_STRENGTH: langevin_strength})
         elif p.sampler_name == "Gradient Estimation":
-            self.get_values_and_apply(p, {consts.GE_GAMMA: gamma})
+            self.get_values_and_apply(
+                p,
+                {
+                    consts.GE_GAMMA: gamma,
+                    consts.GE_GAMMA_OFFSET: gamma_offset,
+                    consts.GE_USE_ADAPTIVE_STEPS: use_adaptive_steps,
+                    consts.GE_USE_TIMESTEP_ADAPTIVE_GAMMA: use_timestep_adaptive_gamma,
+                    consts.GE_VALIDATE_SCHEDULE: validate_schedule,
+                },
+            )
         elif p.sampler_name == "Extended Reverse SDE":
             self.get_values_and_apply(p, {consts.ER_MAX_STAGE: max_stage})

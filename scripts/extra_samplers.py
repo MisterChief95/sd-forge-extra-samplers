@@ -29,7 +29,7 @@ def build_constructor(sampler_name):
     return constructor
 
 
-euler_sampler_list = [
+extra_sampler_list = [
     (
         "Adaptive Progressive",
         "sample_adaptive_progressive",
@@ -44,7 +44,7 @@ euler_sampler_list = [
     ("Euler SMEA Dy", "sample_euler_smea_dy", ["k_euler_smea_dy"], {}),
     ("Euler SMEA Dy Negative", "sample_euler_smea_dy_negative", ["k_euler_smea_dy_negative"], {}),
     ("Extended Reverse SDE", "sample_er_sde", ["k_er_sde"], {"uses_ensd": True, "scheduler": "sgm_uniform"}),
-    ("Gradient Estimation", "sample_gradient_estimation", ["k_gradient_estimation"], {"scheduler": "sgm_uniform"}),
+    ("Gradient Estimation", "sample_gradient_estimation", ["k_gradient_estimation"], {"scheduler": "linear_log"}),
     ("Heun Ancestral", "sample_heun_ancestral", ["k_heun_ancestral"], {"uses_ensd": True}),
     ("Kohaku LoNyu Yog", "sample_kohaku_lonyu_yog", ["k_kohaku_lonyu_yog"], {}),
     (
@@ -71,7 +71,7 @@ euler_sampler_list = [
 
 samplers_data_k_diffusion: list[SamplerData] = [
     SamplerData(name, build_constructor(sampler_name=funcname), aliases, options)
-    for name, funcname, aliases, options in euler_sampler_list
+    for name, funcname, aliases, options in extra_sampler_list
 ]
 
 for sampler in samplers_data_k_diffusion:
