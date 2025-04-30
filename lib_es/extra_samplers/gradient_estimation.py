@@ -80,7 +80,7 @@ def validate_schedule(sigmas: torch.Tensor, eta: float = 0.1, nu: float = 2.0) -
 
     if not is_admissible:
         errors.display(ValueError(f"Noise schedule is not admissible: {', '.join(issues)}"))
-        errors.print_error_explanation(f"Noise schedule validation failed.\n\tIssues: {',\n\t\t'.join(issues)}")
+        errors.print_error_explanation("Noise schedule validation failed.\n\tIssues:" + ",\n\t\t".join(issues))
 
     return is_admissible
 
