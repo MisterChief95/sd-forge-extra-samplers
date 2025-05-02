@@ -6,10 +6,10 @@ from lib_es.extra_samplers.euler_smea_dy import sample_euler_smea_dy
 from lib_es.extra_samplers.euler_smea_dy_negative import sample_euler_smea_dy_negative
 from lib_es.extra_samplers.euler_max import sample_euler_max
 from lib_es.extra_samplers.euler_multipass import (
+    sample_euler_multipass,
+    sample_euler_multipass_cfg_pp,
     sample_euler_ancestral_multipass,
     sample_euler_ancestral_multipass_cfg_pp,
-    sample_euler_multipass_cfg_pp,
-    sample_euler_multipass,
 )
 from lib_es.extra_samplers.euler_negative import sample_euler_negative
 from lib_es.extra_samplers.extended_reverse_time import sample_er_sde
