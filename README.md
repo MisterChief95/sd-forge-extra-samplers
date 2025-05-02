@@ -33,14 +33,24 @@ The source for these new samplers come from projects created by [Koishi-Star](ht
 
 Adds a new extension accordian titled "Extra Samplers" to allow adjusting certain samplers.
 
-
 ## Installation
 
-1. Clone this repository into the `extensions` directory of your WebUI installation:
+## Clone from Git
+
+1. Navigate to the extension directory in your WebUI installation
+1. Clone the repository:
     ```sh
-    git clone https://github.com/MisterChief95/sd-forge-extra-samplers.git
+    git clone https://github.com/MisterChief95/sd-forge-preprocessor-nai-inpaint.git
     ```
-2. Restart the WebUI to load the new samplers.
+1. Start WebUI
+
+## Install from URL
+
+1. Open the Extensions tab in the web UI.
+2. Go to the "Install from URL" section.
+3. Enter: `https://github.com/MisterChief95/sd-forge-preprocessor-nai-inpaint.git` in the "URL for extension's git repository" box.
+4. Click "Install".
+5. Restart WebUI
 
 ## Usage
 
