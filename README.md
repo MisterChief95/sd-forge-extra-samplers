@@ -81,4 +81,8 @@ If any of these are incorrect please let me know!
   - Res Multistep CFG++
   - Res Multistep Ancestral
   - Res Multistep Ancestral CFG++
+- Euler Multipass
+  - Original Implementation: [aria1th](https://github.com/aria1th)
+  - CFG++ Implementation: [LaVie024](https://github.com/LaVie024)
+  - Final ComfyUI implementation: [catboxanon](https://github.com/catboxanon)
 - Special thanks to the contributors of this repository.

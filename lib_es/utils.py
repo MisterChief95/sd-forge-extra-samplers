@@ -7,6 +7,24 @@ def clamp(x: int | float, lower: int | float, upper: int | float) -> int | float
     return max(lower, min(x, upper))
 
 
+# From ComfyUI
+def default_noise_sampler(x, seed=None):
+    """
+    Default noise sampler for the extended reverse SDE solver.
+    Generates Gaussian noise based on the input tensor's shape and device.
+    If a seed is provided, it uses that seed for reproducibility.
+    """
+    if seed is not None:
+        generator = torch.Generator(device=x.device)
+        generator.manual_seed(seed)
+    else:
+        generator = None
+
+    return lambda sigma, sigma_next: torch.randn(
+        x.size(), dtype=x.dtype, layout=x.layout, device=x.device, generator=generator
+    )
+
+
 class _Rescaler:
     def __init__(self, model, x, mode, **extra_args):
         self.model = model
@@ -149,11 +167,11 @@ def dy_sampling_step(x, model, dt, sigma_hat, **extra_args):
     return x
 
 
-def sampler_metadata(name: str, extra_params: dict = {}):
+def sampler_metadata(name: str, extra_params: dict = {}, sampler_aliases: list[str] = []):
     def decorator(func):
         func.sampler_extra_params = extra_params
         func.sampler_name = name
-        func.sampler_k_name = name.replace(" ", "_").lower()
+        func.sampler_k_names = [name.replace(" ", "_").lower(), *sampler_aliases]
         return func
 
     return decorator

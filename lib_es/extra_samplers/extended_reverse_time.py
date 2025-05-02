@@ -2,31 +2,14 @@ import torch
 from tqdm import trange
 
 import lib_es.const as consts
-from lib_es.utils import sampler_metadata
-
-
-# From ComfyUI
-def default_noise_sampler(x, seed=None):
-    """
-    Default noise sampler for the extended reverse SDE solver.
-    Generates Gaussian noise based on the input tensor's shape and device.
-    If a seed is provided, it uses that seed for reproducibility.
-    """
-    if seed is not None:
-        generator = torch.Generator(device=x.device)
-        generator.manual_seed(seed)
-    else:
-        generator = None
-
-    return lambda sigma, sigma_next: torch.randn(
-        x.size(), dtype=x.dtype, layout=x.layout, device=x.device, generator=generator
-    )
+from lib_es.utils import default_noise_sampler, sampler_metadata
 
 
 # From ComfyUI
 @sampler_metadata(
-    "Extended Reverse SDE",
+    "Extended Reverse-Time SDE",
     {"uses_ensd": True, "scheduler": "sgm_uniform"},
+    ["sample_er_sde, extended_reverse_sde"],
 )
 @torch.no_grad()
 def sample_er_sde(

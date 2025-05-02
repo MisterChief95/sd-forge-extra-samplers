@@ -31,7 +31,7 @@ extra_sampler_list = [
     (
         fn.sampler_name,
         fn,
-        [fn.sampler_k_name],
+        fn.sampler_k_names,
         fn.sampler_extra_params,
     )
     for fn in __sampler_funcs__

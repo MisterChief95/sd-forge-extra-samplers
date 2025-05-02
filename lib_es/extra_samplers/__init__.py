@@ -5,6 +5,12 @@ from lib_es.extra_samplers.euler_smea import sample_euler_smea
 from lib_es.extra_samplers.euler_smea_dy import sample_euler_smea_dy
 from lib_es.extra_samplers.euler_smea_dy_negative import sample_euler_smea_dy_negative
 from lib_es.extra_samplers.euler_max import sample_euler_max
+from lib_es.extra_samplers.euler_multipass import (
+    sample_euler_ancestral_multipass,
+    sample_euler_ancestral_multipass_cfg_pp,
+    sample_euler_multipass_cfg_pp,
+    sample_euler_multipass,
+)
 from lib_es.extra_samplers.euler_negative import sample_euler_negative
 from lib_es.extra_samplers.extended_reverse_time import sample_er_sde
 from lib_es.extra_samplers.gradient_estimation import sample_gradient_estimation
@@ -27,13 +33,17 @@ __sampler_funcs__ = [
     sample_euler_smea,
     sample_euler_smea_dy,
     sample_euler_smea_dy_negative,
+    sample_euler_multipass,
+    sample_euler_multipass_cfg_pp,
+    sample_euler_ancestral_multipass,
+    sample_euler_ancestral_multipass_cfg_pp,
     sample_er_sde,
     sample_gradient_estimation,
     sample_heun_ancestral,
     sample_kohaku_lonyu_yog,
     sample_langevin_euler,
-    sample_res_multistep,
-    sample_res_multistep_cfg_pp,
-    sample_res_multistep_ancestral,
     sample_res_multistep_ancestral_cfg_pp,
+    sample_res_multistep_ancestral,
+    sample_res_multistep_cfg_pp,
+    sample_res_multistep,
 ]
