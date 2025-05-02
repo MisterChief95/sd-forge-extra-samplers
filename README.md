@@ -14,6 +14,10 @@ The source for these new samplers come from projects created by [Koishi-Star](ht
   - Euler SMEA
   - Euler SMEA Dy
   - Euler SMEA Dy Negative
+  - Euler Multipass
+  - Euler Multipass CFG++
+  - Euler a Multipass
+  - Euler a Multipass CFG++
   - Extended Reverse Time SDE
   - Gradient Estimation
   - Heun Ancestral
