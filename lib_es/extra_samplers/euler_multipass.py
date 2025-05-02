@@ -13,9 +13,9 @@ from lib_es.utils import default_noise_sampler, extend_sigmas, sampler_metadata
 # ==============================================================================================================
 
 
-def apply_churn(x, sub_sigma, s_churn, s_tmin, s_tmax, s_noise, n_sub):
+def apply_churn(x, sub_sigma, s_churn, s_tmin, s_tmax, s_noise, pass_step):
     if s_churn > 0:
-        gamma = min(s_churn / (n_sub - 1), 2**0.5 - 1) if s_tmin <= sub_sigma < s_tmax else 0
+        gamma = min(s_churn / max(0, pass_step - 1), 2**0.5 - 1) if s_tmin <= sub_sigma < s_tmax else 0
         sigma_hat = sub_sigma * (gamma + 1)
     else:
         gamma = 0
