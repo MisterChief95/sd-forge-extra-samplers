@@ -1,3 +1,6 @@
+from enum import Enum
+import math
+
 import torch
 
 from k_diffusion.sampling import to_d
@@ -185,3 +188,45 @@ def scheduler_metadata(name: str, alias: str, need_inner_model: bool = False):
         return func
 
     return decorator
+
+
+class Interpolator(Enum):
+    LINEAR = (lambda x: x,)  # noqa: E731
+    COSINE = (lambda x: torch.sin(x * math.pi / 2),)  # noqa: E731
+    SINE = (lambda x: 1 - torch.cos(x * math.pi / 2),)  # noqa: E731
+
+
+# Original Implementation `ExtendIntermediateSigmas` by catboxanon: https://www.github.com/catboxanon/
+# Original class impl: https://github.com/comfyanonymous/ComfyUI/blob/065d855f14968406051a1340e3f2f26461a00e5d/comfy_extras/nodes_custom_sampler.py#L253
+def extend_sigmas(
+    sigmas: torch.Tensor,
+    steps: int,
+    start_at_sigma: float,
+    end_at_sigma: float,
+    interpolator: Interpolator = Interpolator.LINEAR,
+) -> list[torch.Tensor]:
+    if start_at_sigma < 0:
+        start_at_sigma = float("inf")
+
+    # linear space for our interpolation function
+    x = torch.linspace(0, 1, steps + 1, device=sigmas.device)[1:-1]
+    computed_spacing: torch.Tensor = interpolator.value[0](x)
+
+    extended_sigmas: list[torch.Tensor] = []
+    for i in range(len(sigmas) - 1):
+        sigma_current = sigmas[i]
+        sigma_next = sigmas[i + 1]
+
+        extended_sigmas.append(sigma_current)
+
+        if end_at_sigma <= sigma_current <= start_at_sigma:
+            interpolated_steps: torch.Tensor = computed_spacing * (sigma_next - sigma_current) + sigma_current
+            extended_sigmas.extend(interpolated_steps.tolist())
+
+    # Add the last sigma value
+    if len(sigmas) > 0:
+        extended_sigmas.append(sigmas[-1])
+
+    extended_sigmas = torch.FloatTensor(extended_sigmas)
+
+    return extended_sigmas
