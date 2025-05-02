@@ -204,7 +204,7 @@ def extend_sigmas(
     start_at_sigma: float,
     end_at_sigma: float,
     interpolator: Interpolator = Interpolator.LINEAR,
-) -> list[torch.Tensor]:
+) -> torch.FloatTensor:
     if start_at_sigma < 0:
         start_at_sigma = float("inf")
 
