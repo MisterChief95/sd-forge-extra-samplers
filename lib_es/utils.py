@@ -227,6 +227,4 @@ def extend_sigmas(
     if len(sigmas) > 0:
         extended_sigmas.append(sigmas[-1])
 
-    extended_sigmas = torch.FloatTensor(extended_sigmas)
-
-    return extended_sigmas
+    return torch.FloatTensor(extended_sigmas)
