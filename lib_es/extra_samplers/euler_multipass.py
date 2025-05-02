@@ -79,13 +79,13 @@ def euler_ancestral_multipass(
         sigma_down, sigma_up = get_ancestral_step(sub_sigma_curr, sub_sigma_next, eta=eta)
 
         d = model.last_noise_uncond if cfg_pp else to_d(x, sub_sigma_curr, denoised)
-        x = (
-            denoised + d * sigma_down
-            if cfg_pp
-            else denoised
-            if sigma_down == 0.0
-            else x + d * (sigma_down - sub_sigma_curr)
-        )
+
+        if cfg_pp:
+            x = denoised + d * sigma_down
+        elif sigma_down == 0.0:
+            x = denoised
+        else:
+            x = x + d * (sigma_down - sub_sigma_curr)
 
         if sigma_up != 0.0:
             # Add noise for the "ancestral" part
