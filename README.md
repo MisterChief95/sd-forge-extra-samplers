@@ -35,7 +35,7 @@ Adds a new extension accordian titled "Extra Samplers" to allow adjusting certai
 
 ## Installation
 
-## Clone from Git
+### Clone from Git
 
 1. Navigate to the extension directory in your WebUI installation
 1. Clone the repository:
@@ -44,7 +44,7 @@ Adds a new extension accordian titled "Extra Samplers" to allow adjusting certai
     ```
 1. Start WebUI
 
-## Install from URL
+### Install from URL
 
 1. Open the Extensions tab in the web UI.
 2. Go to the "Install from URL" section.
