@@ -57,10 +57,6 @@ Langevin Euler is an SDE sampler that uses Langevin dynamics to add noise as sam
 
 Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
 
-## License
-
-This project is licensed under the Apache 2. See the [LICENSE](LICENSE) file for details.
-
 ## Acknowledgements
 
 If any of these are incorrect please let me know!
