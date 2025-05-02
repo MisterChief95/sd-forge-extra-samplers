@@ -49,13 +49,9 @@ Adds a new extension accordian titled "Extra Samplers" to allow adjusting certai
 3. Select one of the newly added Euler samplers from the list.
 4. Generate images as usual.
 
-Because of how these Dy/SMEA samplers work, they are not guaranteed to function correctly in img2img scenarios (Hires fix, adetailer, etc).
-If you get strange outputs or artifcating in these cases, try using a different sampler after generating the base image.
-
-Euler Max seems to work fine in just about all scenarios from my own testing.
-
-Adaptive Progressive and Langevin Euler are samplers of my own I've been experimenting with. The former uses Euler A-like sampling initially then switches to DPM++ 2M and finally a detailing stage as the sampling progresses.
-Langevin Euler is an SDE sampler that uses Langevin dynamics to add noise as sampling progresses.
+### Important
+- Not all samplers work well in every situation. Some will look poor when used for img2img/hires fix.
+- Mix-and-match samplers to find the best combinations. A sampler might look bad with one scheduler but good with another!
 
 ## Contributing
 
