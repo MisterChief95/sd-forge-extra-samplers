@@ -39,140 +39,172 @@ class ExtraSamplerExtension(scripts.Script):
 
     def ui(self, is_img2img):
         with gr.Accordion(label="Extra Samplers", open=False):
-            with gr.Accordion(label="Adaptive Progressive", open=False):
-                gr.Markdown("Adaptive progressive sampler that automatically adjusts to different step counts. ")
-                gr.Markdown(
-                    "Phase ends are automatically adjusted based on the total number of steps. These are approximations"
-                )
-                with gr.Row():
-                    euler_a_end = gr.Slider(
-                        minimum=0.0,
-                        maximum=1.0,
-                        step=0.05,
-                        value=from_setting_or_default(consts.AP_EULER_A_END, 0.35),
-                        label="Euler A end",
-                    )
-                    dpm_2m_end = gr.Slider(
-                        minimum=0.0,
-                        maximum=1.0,
-                        step=0.05,
-                        value=from_setting_or_default(consts.AP_DPM_2M_END, 0.75),
-                        label="DPM++ 2M end",
-                    )
-                with gr.Row():
-                    ancestral_eta = gr.Slider(
-                        minimum=0.0,
-                        maximum=1.0,
-                        step=0.05,
-                        value=from_setting_or_default(consts.AP_ANCESTRAL_ETA, 0.4),
-                        label="Ancestral Eta",
-                    )
-                    detail_strength = gr.Slider(
-                        minimum=0.0,
-                        maximum=10.0,
-                        step=0.1,
-                        value=from_setting_or_default(consts.AP_DETAIL_STRENGTH, 1.5),
-                        label="Detail Strength",
-                    )
+            with gr.Tabs():
+                with gr.Tab("Sampler Settings"):
+                    with gr.Accordion(label="Adaptive Progressive", open=False):
+                        gr.Markdown(
+                            "Adaptive progressive sampler that automatically adjusts to different step counts. "
+                        )
+                        gr.Markdown(
+                            "Phase ends are automatically adjusted based on the total number of steps. These are approximations"
+                        )
+                        with gr.Row():
+                            euler_a_end = gr.Slider(
+                                minimum=0.0,
+                                maximum=1.0,
+                                step=0.05,
+                                value=from_setting_or_default(consts.AP_EULER_A_END, 0.35),
+                                label="Euler A end",
+                            )
+                            dpm_2m_end = gr.Slider(
+                                minimum=0.0,
+                                maximum=1.0,
+                                step=0.05,
+                                value=from_setting_or_default(consts.AP_DPM_2M_END, 0.75),
+                                label="DPM++ 2M end",
+                            )
+                        with gr.Row():
+                            ancestral_eta = gr.Slider(
+                                minimum=0.0,
+                                maximum=1.0,
+                                step=0.05,
+                                value=from_setting_or_default(consts.AP_ANCESTRAL_ETA, 0.4),
+                                label="Ancestral Eta",
+                            )
+                            detail_strength = gr.Slider(
+                                minimum=0.0,
+                                maximum=10.0,
+                                step=0.1,
+                                value=from_setting_or_default(consts.AP_DETAIL_STRENGTH, 1.5),
+                                label="Detail Strength",
+                            )
 
-                euler_a_end.change(
-                    fn=lambda value: on_change_update_setting(consts.AP_EULER_A_END, value), inputs=[euler_a_end]
-                )
-                dpm_2m_end.change(
-                    fn=lambda value: on_change_update_setting(consts.AP_DPM_2M_END, value), inputs=[dpm_2m_end]
-                )
-                ancestral_eta.change(
-                    fn=lambda value: on_change_update_setting(consts.AP_ANCESTRAL_ETA, value),
-                    inputs=[ancestral_eta],
-                )
-                detail_strength.change(
-                    fn=lambda value: on_change_update_setting(consts.AP_DETAIL_STRENGTH, value),
-                    inputs=[detail_strength],
-                )
+                        euler_a_end.change(
+                            fn=lambda value: on_change_update_setting(consts.AP_EULER_A_END, value),
+                            inputs=[euler_a_end],
+                        )
+                        dpm_2m_end.change(
+                            fn=lambda value: on_change_update_setting(consts.AP_DPM_2M_END, value), inputs=[dpm_2m_end]
+                        )
+                        ancestral_eta.change(
+                            fn=lambda value: on_change_update_setting(consts.AP_ANCESTRAL_ETA, value),
+                            inputs=[ancestral_eta],
+                        )
+                        detail_strength.change(
+                            fn=lambda value: on_change_update_setting(consts.AP_DETAIL_STRENGTH, value),
+                            inputs=[detail_strength],
+                        )
 
-            with gr.Accordion(label="Langevin Euler", open=False):
-                langevin_strength = gr.Slider(
-                    minimum=0.0,
-                    maximum=0.5,
-                    step=0.01,
-                    value=from_setting_or_default(consts.LANGEVIN_STRENGTH, 0.1),
-                    label="Langevin Strength",
-                    info="Langevin strength for Langevin Euler sampler. Adjust to control the amount of noise.",
-                )
-                langevin_strength.change(
-                    fn=lambda value: on_change_update_setting(consts.LANGEVIN_STRENGTH, value),
-                    inputs=[langevin_strength],
-                )
+                    with gr.Accordion(label="Langevin Euler", open=False):
+                        langevin_strength = gr.Slider(
+                            minimum=0.0,
+                            maximum=0.5,
+                            step=0.01,
+                            value=from_setting_or_default(consts.LANGEVIN_STRENGTH, 0.1),
+                            label="Langevin Strength",
+                            info="Langevin strength for Langevin Euler sampler. Adjust to control the amount of noise.",
+                        )
+                        langevin_strength.change(
+                            fn=lambda value: on_change_update_setting(consts.LANGEVIN_STRENGTH, value),
+                            inputs=[langevin_strength],
+                        )
 
-            with gr.Accordion(label="Gradient Estimation", open=False):
-                use_adaptive_steps = from_setting_or_default(consts.GE_USE_ADAPTIVE_STEPS, False)
+                    with gr.Accordion(label="Gradient Estimation", open=False):
+                        use_adaptive_steps = from_setting_or_default(consts.GE_USE_ADAPTIVE_STEPS, False)
 
-                adaptive_steps = gr.Checkbox(
-                    label="Use Adaptive Steps",
-                    value=use_adaptive_steps,
-                    info="Modify the number of steps based on the noise schedule.",
-                )
-                use_timestep_adaptive_gamma = gr.Checkbox(
-                    label="Timestep-Based Adaptive Gamma",
-                    value=from_setting_or_default(consts.GE_USE_TIMESTEP_ADAPTIVE_GAMMA, False),
-                    info="Adjust gamma during generation.",
-                )
-                gamma = gr.Slider(
-                    minimum=consts.GE_MIN_GAMMA,
-                    maximum=consts.GE_MAX_GAMMA,
-                    step=0.05,
-                    value=from_setting_or_default(consts.GE_GAMMA, consts.GE_DEFAULT_GAMMA),
-                    label="Gamma",
-                    info="Gamma value for gradient estimation. Higher values increase the amount of noise.",
-                    interactive=not use_adaptive_steps,
-                )
-                gamma_offset = gr.Slider(
-                    minimum=consts.GE_MIN_GAMMA_OFFSET,
-                    maximum=consts.GE_MAX_GAMMA_OFFSET,
-                    step=0.05,
-                    value=from_setting_or_default(consts.GE_GAMMA_OFFSET, consts.GE_DEFAULT_GAMMA_OFFSET),
-                    label="Gamma Offset",
-                    info="Offset to add to the calculated gamma when using adaptive steps.",
-                    interactive=use_adaptive_steps,
-                )
-                gamma.change(fn=lambda value: on_change_update_setting(consts.GE_GAMMA, value), inputs=[gamma])
-                gamma_offset.change(
-                    fn=lambda value: on_change_update_setting(consts.GE_GAMMA_OFFSET, value), inputs=[gamma_offset]
-                )
+                        adaptive_steps = gr.Checkbox(
+                            label="Use Adaptive Steps",
+                            value=use_adaptive_steps,
+                            info="Modify the number of steps based on the noise schedule.",
+                        )
+                        use_timestep_adaptive_gamma = gr.Checkbox(
+                            label="Timestep-Based Adaptive Gamma",
+                            value=from_setting_or_default(consts.GE_USE_TIMESTEP_ADAPTIVE_GAMMA, False),
+                            info="Adjust gamma during generation.",
+                        )
+                        gamma = gr.Slider(
+                            minimum=consts.GE_MIN_GAMMA,
+                            maximum=consts.GE_MAX_GAMMA,
+                            step=0.05,
+                            value=from_setting_or_default(consts.GE_GAMMA, consts.GE_DEFAULT_GAMMA),
+                            label="Gamma",
+                            info="Gamma value for gradient estimation. Higher values increase the amount of noise.",
+                            interactive=not use_adaptive_steps,
+                        )
+                        gamma_offset = gr.Slider(
+                            minimum=consts.GE_MIN_GAMMA_OFFSET,
+                            maximum=consts.GE_MAX_GAMMA_OFFSET,
+                            step=0.05,
+                            value=from_setting_or_default(consts.GE_GAMMA_OFFSET, consts.GE_DEFAULT_GAMMA_OFFSET),
+                            label="Gamma Offset",
+                            info="Offset to add to the calculated gamma when using adaptive steps.",
+                            interactive=use_adaptive_steps,
+                        )
+                        gamma.change(fn=lambda value: on_change_update_setting(consts.GE_GAMMA, value), inputs=[gamma])
+                        gamma_offset.change(
+                            fn=lambda value: on_change_update_setting(consts.GE_GAMMA_OFFSET, value),
+                            inputs=[gamma_offset],
+                        )
 
-                # Update interactivity when adaptive steps checkbox changes
-                adaptive_steps.change(
-                    fn=lambda value: (gr.Slider(interactive=not value), gr.Slider(interactive=value)),
-                    inputs=[adaptive_steps],
-                    outputs=[gamma, gamma_offset],
-                    js=None,
-                ).then(
-                    fn=lambda value: on_change_update_setting(consts.GE_USE_ADAPTIVE_STEPS, value),
-                    inputs=[adaptive_steps],
-                )
+                        # Update interactivity when adaptive steps checkbox changes
+                        adaptive_steps.change(
+                            fn=lambda value: (gr.Slider(interactive=not value), gr.Slider(interactive=value)),
+                            inputs=[adaptive_steps],
+                            outputs=[gamma, gamma_offset],
+                            js=None,
+                        ).then(
+                            fn=lambda value: on_change_update_setting(consts.GE_USE_ADAPTIVE_STEPS, value),
+                            inputs=[adaptive_steps],
+                        )
 
-                use_timestep_adaptive_gamma.change(
-                    fn=lambda value: on_change_update_setting(consts.GE_USE_TIMESTEP_ADAPTIVE_GAMMA, value),
-                    inputs=[use_timestep_adaptive_gamma],
-                )
+                        use_timestep_adaptive_gamma.change(
+                            fn=lambda value: on_change_update_setting(consts.GE_USE_TIMESTEP_ADAPTIVE_GAMMA, value),
+                            inputs=[use_timestep_adaptive_gamma],
+                        )
 
-                validate_schedule = gr.Checkbox(
-                    label="Validate Schedule",
-                    value=from_setting_or_default(consts.GE_VALIDATE_SCHEDULE, False),
-                    info="Validate the noise schedule (For debugging purposes).",
-                )
+                        validate_schedule = gr.Checkbox(
+                            label="Validate Schedule",
+                            value=from_setting_or_default(consts.GE_VALIDATE_SCHEDULE, False),
+                            info="Validate the noise schedule (For debugging purposes).",
+                        )
 
-            with gr.Accordion(label="Extended Reverse SDE", open=False):
-                gr.Markdown("Extended reverse SDE sampler.")
-                gr.Markdown("Max stage for extended reverse SDE.")
-                max_stage = gr.Slider(
-                    minimum=1,
-                    maximum=3,
-                    step=1,
-                    value=from_setting_or_default(consts.ER_MAX_STAGE, 3),
-                    label="Max Stage",
-                )
-                max_stage.change(fn=lambda value: on_change_update_setting(consts.MAX_STAGE, value), inputs=[max_stage])
+                    with gr.Accordion(label="Extended Reverse SDE", open=False):
+                        gr.Markdown("Extended reverse SDE sampler.")
+                        gr.Markdown("Max stage for extended reverse SDE.")
+                        max_stage = gr.Slider(
+                            minimum=1,
+                            maximum=3,
+                            step=1,
+                            value=from_setting_or_default(consts.ER_MAX_STAGE, 3),
+                            label="Max Stage",
+                        )
+                        max_stage.change(
+                            fn=lambda value: on_change_update_setting(consts.MAX_STAGE, value), inputs=[max_stage]
+                        )
+                with gr.Tab("Advanced Settings"):
+                    with gr.Accordion(label="Extended Sigmas", open=False):
+                        with gr.Row():
+                            es_sigma_start = gr.Slider(
+                                minimum=0.0,
+                                maximum=1.0,
+                                step=0.01,
+                                value=from_setting_or_default(consts.ESIGMA_START, 0.5),
+                                label="Sub-stepping Range Start",
+                            )
+                            es_sigma_end = gr.Slider(
+                                minimum=0.0,
+                                maximum=1.0,
+                                step=0.01,
+                                value=from_setting_or_default(consts.ESIGMA_END, 0.5),
+                                label="Sub-stepping Range End",
+                            )
+                        es_sigma_start.change(
+                            fn=lambda value: on_change_update_setting(consts.ESIGMA_START, value),
+                            inputs=[es_sigma_start],
+                        )
+                        es_sigma_end.change(
+                            fn=lambda value: on_change_update_setting(consts.ESIGMA_END, value), inputs=[es_sigma_end]
+                        )
 
         return [
             euler_a_end,
@@ -186,6 +218,8 @@ class ExtraSamplerExtension(scripts.Script):
             gamma,
             gamma_offset,
             validate_schedule,
+            es_sigma_start,
+            es_sigma_end,
         ]
 
     def get_values_and_apply(self, p: StableDiffusionProcessing, values: dict):
@@ -208,6 +242,8 @@ class ExtraSamplerExtension(scripts.Script):
         gamma: float,
         gamma_offset: float,
         validate_schedule: bool,
+        es_sigma_start: float,
+        es_sigma_end: float,
         batch_number: int,
         prompts: list[str],
         seeds: list[int],
@@ -238,6 +274,14 @@ class ExtraSamplerExtension(scripts.Script):
             )
         elif p.sampler_name == "Extended Reverse SDE":
             self.get_values_and_apply(p, {consts.ER_MAX_STAGE: max_stage})
+        elif "multipass" in p.sampler_name.lower():
+            self.get_values_and_apply(
+                p,
+                {
+                    consts.ESIGMA_START: es_sigma_start,
+                    consts.ESIGMA_END: es_sigma_end,
+                },
+            )
 
 
 section = ("exs", "Extra Samplers")
@@ -345,6 +389,28 @@ def on_settings():
             False,
             "Use Timestep Adaptive Gamma",
             component=gr.Checkbox,
+            section=section,
+        ),
+    )
+
+    opts.add_option(
+        consts.ESIGMA_START,
+        OptionInfo(
+            consts.ESIGMA_START_DEFAULT,
+            "Multipass Sigma Start",
+            component=gr.Slider,
+            component_args={"minimum": 0.0, "maximum": 1.0, "step": 0.01},
+            section=section,
+        ),
+    )
+
+    opts.add_option(
+        consts.ESIGMA_END,
+        OptionInfo(
+            consts.ESIGMA_END_DEFAULT,
+            "Multipass Sigma End",
+            component=gr.Slider,
+            component_args={"minimum": 0.0, "maximum": 1.0, "step": 0.01},
             section=section,
         ),
     )

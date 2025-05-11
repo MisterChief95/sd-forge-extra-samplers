@@ -3,7 +3,11 @@ from tqdm import trange
 
 from k_diffusion.sampling import get_ancestral_step, to_d
 
-from lib_es.utils import default_noise_sampler, extend_sigmas, sampler_metadata
+from modules.sd_samplers_kdiffusion import CFGDenoiserKDiffusion
+from modules.shared import state
+
+from lib_es import const as consts
+from lib_es.utils import default_noise_sampler, extend_sigmas_range, sampler_metadata
 
 
 # ==============================================================================================================
@@ -28,9 +32,21 @@ def apply_churn(x, sub_sigma, s_churn, s_tmin, s_tmax, s_noise, pass_step):
     return x, sigma_hat
 
 
+def get_sigma_range(p) -> tuple[float, float]:
+    """
+    Get the range of sigmas for the multipass sampling.
+    :param p: The current pass number.
+    :return: A tuple containing the start and end sigmas for the current pass.
+    """
+    start = getattr(p, consts.ESIGMA_START, consts.ESIGMA_START_DEFAULT)
+    end = getattr(p, consts.ESIGMA_END, consts.ESIGMA_END_DEFAULT)
+
+    return start, end
+
+
 @torch.no_grad()
 def euler_ancestral_multipass(
-    model,
+    model: CFGDenoiserKDiffusion,
     x,
     sigmas,
     extra_args=None,
@@ -40,8 +56,6 @@ def euler_ancestral_multipass(
     s_noise=1.0,
     noise_sampler=None,
     pass_steps=2,
-    pass_sigma_max=float("inf"),
-    pass_sigma_min=12.0,
     cfg_pp=False,
 ):
     """
@@ -62,35 +76,30 @@ def euler_ancestral_multipass(
         model.need_last_noise_uncond = True
         model.inner_model.inner_model.forge_objects.unet.model_options["disable_cfg1_optimization"] = True
 
-    sub_sigmas = extend_sigmas(sigmas, pass_steps, pass_sigma_max, pass_sigma_min)
+    start_prcnt, end_prcnt = get_sigma_range(model.p)
+    sub_sigmas = extend_sigmas_range(sigmas, pass_steps, start_prcnt, end_prcnt)
+    state.sampling_steps = len(sub_sigmas) - 1
 
     for i in trange(len(sub_sigmas) - 1, disable=disable):
         # Current sub-step range:
         sub_sigma_curr = sub_sigmas[i]
         sub_sigma_next = sub_sigmas[i + 1]
 
-        # Denoise at the current sub-sigma
         denoised = model(x, sub_sigma_curr * s_in, **extra_args)
-
-        if callback is not None:
-            callback({"x": x, "i": i, "sub_step": i, "sigma": sub_sigma_curr, "denoised": denoised})
-
-        # Compute the ancestral step parameters for this sub-interval
         sigma_down, sigma_up = get_ancestral_step(sub_sigma_curr, sub_sigma_next, eta=eta)
 
-        d = model.last_noise_uncond if cfg_pp else to_d(x, sub_sigma_curr, denoised)
-
-        if cfg_pp:
-            x = denoised + d * sigma_down
-        elif sigma_down == 0.0:
+        if not cfg_pp and sigma_down == 0.0:
             x = denoised
         else:
-            x = x + d * (sigma_down - sub_sigma_curr)
+            d = model.last_noise_uncond if cfg_pp else to_d(x, sub_sigma_curr, denoised)
+            x = denoised + d * sigma_down if cfg_pp else x + d * (sigma_down - sub_sigma_curr)
 
-        if sigma_up != 0.0:
-            # Add noise for the "ancestral" part
-            x = x + noise_sampler(sub_sigma_curr, sub_sigma_next) * (s_noise * sigma_up)
+            if (cfg_pp and sub_sigma_next > 0) or sigma_up != 0.0:
+                # Add noise for the "ancestral" part
+                x = x + noise_sampler(sub_sigma_curr, sub_sigma_next) * (s_noise * sigma_up)
 
+        if callback is not None:
+            callback({"x": x, "i": i, "sigma": sub_sigma_curr, "sigma_hat": sub_sigma_curr, "denoised": denoised})
     return x
 
 
@@ -105,9 +114,6 @@ def sample_euler_ancestral_multipass(
     eta=1.0,
     s_noise=1.0,
     noise_sampler=None,
-    pass_steps=2,
-    pass_sigma_max=float("inf"),
-    pass_sigma_min=12.0,
 ):
     return euler_ancestral_multipass(
         model,
@@ -119,10 +125,7 @@ def sample_euler_ancestral_multipass(
         eta,
         s_noise,
         noise_sampler,
-        pass_steps,
-        pass_sigma_max,
-        pass_sigma_min,
-        False,
+        cfg_pp=False,
     )
 
 
@@ -137,9 +140,6 @@ def sample_euler_ancestral_multipass_cfg_pp(
     eta=1.0,
     s_noise=1.0,
     noise_sampler=None,
-    pass_steps=2,
-    pass_sigma_max=float("inf"),
-    pass_sigma_min=12.0,
 ):
     return euler_ancestral_multipass(
         model,
@@ -151,10 +151,7 @@ def sample_euler_ancestral_multipass_cfg_pp(
         eta,
         s_noise,
         noise_sampler,
-        pass_steps,
-        pass_sigma_max,
-        pass_sigma_min,
-        True,
+        cfg_pp=True,
     )
 
 
@@ -182,13 +179,15 @@ def euler_multipass(
     extra_args = {} if extra_args is None else extra_args
     seed = extra_args.get("seed", None)
     noise_sampler = default_noise_sampler(x, seed=seed) if noise_sampler is None else noise_sampler
+    s_in = x.new_ones([x.shape[0]])
 
     if cfg_pp:
         model.need_last_noise_uncond = True
         model.inner_model.inner_model.forge_objects.unet.model_options["disable_cfg1_optimization"] = True
 
-    s_in = x.new_ones([x.shape[0]])
-    sub_sigmas = extend_sigmas(sigmas, pass_steps, pass_sigma_max, pass_sigma_min)
+    start_prcnt, end_prcnt = get_sigma_range(model.p)
+    sub_sigmas = extend_sigmas_range(sigmas, pass_steps, start_prcnt, end_prcnt)
+    state.total_sampling_steps = len(sub_sigmas) - 1
 
     for i in trange(len(sub_sigmas) - 1, disable=disable):
         # Current sub-step range:
@@ -205,7 +204,6 @@ def euler_multipass(
                 {
                     "x": x,
                     "i": i,
-                    "sub_step": i,
                     "sigma": sub_sigma_curr,
                     "sigma_hat": sigma_hat,
                     "denoised": denoised,

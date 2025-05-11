@@ -228,3 +228,41 @@ def extend_sigmas(
         extended_sigmas.append(sigmas[-1])
 
     return torch.FloatTensor(extended_sigmas)
+
+
+def extend_sigmas_range(
+    sigmas: torch.Tensor,
+    steps: int,
+    start_prcnt: float,
+    end_prcnt: float,
+    interpolator: Interpolator = Interpolator.LINEAR,
+) -> torch.FloatTensor:
+    if not (0 <= start_prcnt <= 1) or not (0 <= end_prcnt <= 1):
+        raise ValueError("start_prcnt and end_prcnt must be between 0 and 1")
+
+    if sigmas.numel() == 0:
+        return torch.FloatTensor([])
+
+    # Clamp to valid range
+    start_prcnt = clamp(start_prcnt, 0, 1)
+    end_prcnt = clamp(end_prcnt, 0, 1)
+
+    # Compute indices
+    start_idx = int((len(sigmas) - 1) * start_prcnt)
+    end_idx = int((len(sigmas) - 1) * end_prcnt)
+
+    # Ensure indices are within bounds
+    start_idx = clamp(start_idx, 0, len(sigmas) - 1)
+    end_idx = clamp(end_idx, 0, len(sigmas) - 1)
+
+    # Get sigma values at those indices
+    start_at_sigma = float(sigmas[start_idx])
+    end_at_sigma = float(sigmas[end_idx])
+
+    return extend_sigmas(
+        sigmas,
+        steps,
+        start_at_sigma,
+        end_at_sigma,
+        interpolator=interpolator,
+    )

@@ -44,6 +44,8 @@ def xyz_support(cache: dict):
             apply_field(consts.GE_USE_TIMESTEP_ADAPTIVE_GAMMA, is_bool=True),
         ),
         xyz_grid.AxisOption("[Langevin Euler] Langevin Strength", float, apply_field(consts.LANGEVIN_STRENGTH)),
+        xyz_grid.AxisOption("[ExtendedSigmas] Start Percent", float, apply_field(consts.ESIGMA_START)),
+        xyz_grid.AxisOption("[ExtendedSigmas] End Percent", float, apply_field(consts.ESIGMA_END)),
     ]
 
     xyz_grid.axis_options.extend(extra_axis_options)
