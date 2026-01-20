@@ -1,6 +1,10 @@
 # Overview
 
-This repository provides additional samplers to the Forge WebUI.
+This repository provides additional samplers to the Forge Neo WebUI.
+
+> [!IMPORTANT]
+> Support for older versions of has been dropped since they are no longer maintained.
+> Please ensure you are using the latest version of Forge Neo WebUI.
 
 ## Features
 
