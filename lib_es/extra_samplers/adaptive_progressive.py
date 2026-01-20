@@ -1,8 +1,7 @@
 import math
 import torch
 from tqdm.auto import trange
-from k_diffusion.sampling import to_d, get_ancestral_step
-from backend.modules.k_diffusion_extra import default_noise_sampler
+from modules_forge.packages.k_diffusion.sampling import to_d, get_ancestral_step, default_noise_sampler
 
 import lib_es.const as consts
 from lib_es.utils import sampler_metadata

@@ -1,7 +1,7 @@
 import torch
 from tqdm import trange
 
-from k_diffusion.sampling import get_ancestral_step, to_d
+from modules_forge.packages.k_diffusion.sampling import get_ancestral_step, to_d
 
 from lib_es.utils import default_noise_sampler, extend_sigmas, sampler_metadata
 

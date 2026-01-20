@@ -1,6 +1,6 @@
 import torch
 from tqdm.auto import trange
-from k_diffusion.sampling import default_noise_sampler, to_d
+from modules_forge.packages.k_diffusion.sampling import default_noise_sampler, to_d
 
 import lib_es.const as consts
 from lib_es.utils import sampler_metadata

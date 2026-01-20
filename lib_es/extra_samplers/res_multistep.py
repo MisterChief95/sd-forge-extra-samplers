@@ -1,9 +1,8 @@
 import torch
 from tqdm.auto import trange
 
-from backend.modules.k_diffusion_extra import default_noise_sampler
+from modules_forge.packages.k_diffusion.sampling import get_ancestral_step, to_d, default_noise_sampler
 from backend.patcher.unet import UnetPatcher
-from k_diffusion.sampling import get_ancestral_step, to_d
 
 from lib_es.utils import sampler_metadata
 

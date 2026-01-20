@@ -23,8 +23,12 @@ def linear_log(
         n: Number of sampling steps
         sigma_min: Minimum noise level
         sigma_max: Maximum noise level
+        inner_model: Inner model
+        device: Device to place the tensor on
         eta: Error parameter (default 0.1, as estimated in the paper for CIFAR-10)
         nu: Accuracy parameter for distance estimates (default 2.0)
+        sgm: Whether to include the final sigma=0-step
+        floor: Whether to floor sigma values at sigma_min
         final_step_full: Whether to take a full step (β=1) for the final iteration
 
     Returns:

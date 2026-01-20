@@ -3,7 +3,7 @@ from typing import Any, Optional
 import torch
 from tqdm import trange
 
-from k_diffusion.sampling import to_d
+from modules_forge.packages.k_diffusion.sampling import to_d
 from modules import errors
 
 import lib_es.const as consts

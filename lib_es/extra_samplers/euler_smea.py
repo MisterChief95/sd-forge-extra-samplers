@@ -1,6 +1,6 @@
 import torch
 
-from k_diffusion.sampling import to_d
+from modules_forge.packages.k_diffusion.sampling import to_d
 
 from tqdm.auto import trange
 

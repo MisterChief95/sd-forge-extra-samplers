@@ -1,11 +1,10 @@
 import torch
 
-from k_diffusion.sampling import to_d
+from modules_forge.packages.k_diffusion.sampling import to_d
 
 from tqdm.auto import trange
 
-from lib_es.utils import dy_sampling_step
-from lib_es.utils import sampler_metadata
+from lib_es.utils import dy_sampling_step, sampler_metadata
 
 
 @sampler_metadata("Euler Dy Negative")
