@@ -1,7 +1,7 @@
 # RES4LYF Forge Port Notes
 
 This package contains the Forge-facing RES4LYF sampler port used by
-`sd-forge-extra-samplers`. The source of truth for the upstream code is the
+`sd-forge-extra-samplers`. The source of truth for the upstream code was the
 local clone at `extensions/RES4LYF`, currently matching:
 
 - Project: RES4LYF
