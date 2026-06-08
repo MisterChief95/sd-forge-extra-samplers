@@ -32,9 +32,6 @@ def sample_langevin_euler(
     noise_sampler = default_noise_sampler(x) if noise_sampler is None else noise_sampler
     s_in = x.new_ones([x.shape[0]])
 
-    # Store original shape for aspect ratio calculations
-    height, width = x.shape[2:4]
-    aspect_ratio = width / height
     sigma_max = sigmas[0]
 
     langevin_strength = getattr(model.p, consts.LANGEVIN_STRENGTH, 0.1)
@@ -65,25 +62,11 @@ def sample_langevin_euler(
 
         # Apply Langevin noise if not the final step
         if sigmas[i + 1] > 0:
-            # Simpler Langevin noise logic with less aggressive scaling
-            # Use a constant base noise level with a gentle decay
-            base_noise_level = langevin_strength  # Base level from parameter
+            sigma_delta = (sigma_hat - sigmas[i + 1]).abs()
+            decay_factor = (sigmas[i + 1] / sigma_max).clamp(min=0).sqrt()
+            noise_scale = langevin_strength * sigma_delta * decay_factor
+            noise_scale = torch.minimum(noise_scale, sigmas[i + 1] * 0.5)
 
-            # Gentle decay curve - more consistent noise across steps
-            # Sqrt provides a more gradual decrease than linear scaling
-            decay_factor = torch.sqrt(sigmas[i + 1] / sigma_max)
-            noise_scale = base_noise_level * (0.1 + 0.9 * decay_factor)
-
-            # Higher safety clamp to allow more noise influence
-            noise_scale = max(langevin_strength * 0.05, min(noise_scale, 0.8))
-
-            # Generate balanced noise
-            noise = torch.randn_like(x) * noise_scale
-            height_scale = torch.sqrt(torch.tensor(aspect_ratio))
-            width_scale = 1.0 / height_scale
-            scaling = torch.tensor([1.0, 1.0, height_scale, width_scale]).reshape(1, -1, 1, 1).to(x.device)
-            balanced_noise = noise * scaling
-
-            x = x + balanced_noise
+            x = x + noise_sampler(sigmas[i], sigmas[i + 1]) * noise_scale
 
     return x

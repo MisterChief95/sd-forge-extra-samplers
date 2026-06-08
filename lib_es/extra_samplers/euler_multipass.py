@@ -1,7 +1,7 @@
 import torch
 from tqdm import trange
 
-from modules_forge.packages.k_diffusion.sampling import get_ancestral_step, to_d
+from modules_forge.packages.k_diffusion.sampling import get_ancestral_step, sample_euler_ancestral_RF, to_d
 
 from lib_es.utils import default_noise_sampler, extend_sigmas, sampler_metadata, enable_cfg_pp_simple
 
@@ -11,6 +11,11 @@ from lib_es.utils import default_noise_sampler, extend_sigmas, sampler_metadata,
 #  - CFG++ support written by LaVie024: https://github.com/LaVie024
 #  - Standard Euler support written by catboxanon: https://github.com/catboxanon
 # ==============================================================================================================
+
+
+def is_rf_model(model) -> bool:
+    predictor = getattr(getattr(model, "inner_model", None), "predictor", None)
+    return getattr(predictor, "prediction_type", None) == "const"
 
 
 def apply_churn(x, sub_sigma, s_churn, s_tmin, s_tmax, s_noise, pass_step):
@@ -62,6 +67,11 @@ def euler_ancestral_multipass(
         extra_args = enable_cfg_pp_simple(model, extra_args)
 
     sub_sigmas = extend_sigmas(sigmas, pass_steps, pass_sigma_max, pass_sigma_min)
+
+    if not cfg_pp and is_rf_model(model):
+        return sample_euler_ancestral_RF(
+            model, x, sub_sigmas, extra_args, callback, disable, eta, s_noise, noise_sampler
+        )
 
     for i in trange(len(sub_sigmas) - 1, disable=disable):
         # Current sub-step range:
