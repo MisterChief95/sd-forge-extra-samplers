@@ -6,7 +6,7 @@ from modules_forge.packages.k_diffusion.sampling import (
     offset_first_sigma_for_snr,
 )
 from lib_es.utils import sampler_metadata, safe_sqrt, default_noise_sampler
-from lib_es.const import ER_SDE_VP_MAX_STAGE, ER_SDE_VP_INTEGRATION_POINTS
+from lib_es.const import ER_SDE_VP_INTEGRATION_POINTS
 
 
 @torch.no_grad()

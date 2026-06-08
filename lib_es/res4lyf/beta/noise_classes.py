@@ -8,7 +8,6 @@
 # See PORTING_NOTES.md for Forge-specific divergence notes.
 #
 import torch
-import torch.nn.functional as F
 
 from torch import nn, Tensor, Generator, lerp
 from torch.nn.functional import unfold
@@ -888,7 +887,6 @@ class PerlinNoiseGenerator(NoiseGenerator):
         return noise / noise.std()
 
 
-from functools import partial
 
 NOISE_GENERATOR_CLASSES = {
     "fractal": FractalNoiseGenerator,

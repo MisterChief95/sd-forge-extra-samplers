@@ -9,7 +9,6 @@
 #
 import torch
 from torch import Tensor
-import torch.nn.functional as F
 
 try:
     from tqdm.auto import trange
@@ -19,9 +18,7 @@ except ImportError:
         return range(*args)
 
 
-import gc
-from typing import Optional, Callable, Tuple, List, Dict, Any, Union
-import math
+from typing import Optional, Callable, Tuple, List, Any
 import copy
 
 from comfy.model_sampling import EPS
@@ -35,20 +32,15 @@ from ..latents import (
     get_orthogonal,
     get_cosine_similarity,
     get_pearson_similarity,
-    get_slerp_weight_for_cossim,
-    get_slerp_ratio,
     slerp_tensor,
-    get_edge_mask,
     normalize_zscore,
-    compute_slerp_ratio_for_target,
     find_slerp_ratio_grid,
 )
-from ..style_transfer import apply_scattersort_spatial, apply_adain_spatial
+from ..style_transfer import apply_scattersort_spatial
 
 from .rk_method_beta import RK_Method_Beta
 from .rk_noise_sampler_beta import RK_NoiseSampler
 from .rk_guide_func_beta import LatentGuide
-from .phi_functions import Phi
 from .constants import MAX_STEPS, GUIDE_MODE_NAMES_PSEUDOIMPLICIT
 
 
@@ -1614,10 +1606,10 @@ def sample_rk_beta(
                                     )
                                     y0_bongflow = (
                                         y0_bongflow
-                                        + LG.drift_x_data * drift_x_mask * (data_x - y0_bongflow)
-                                        + LG.drift_x_sync * drift_x_mask * (data_barf - y0_bongflow)
-                                        + LG.drift_y_data * drift_y_mask * (data_y - y0_bongflow)
-                                        + LG.drift_y_sync * drift_y_mask * (data_barf_y - y0_bongflow)
+                                        + LG.drift_x_data * drift_x_mask * (data_x - y0_bongflow)  # noqa: F821
+                                        + LG.drift_x_sync * drift_x_mask * (data_barf - y0_bongflow)  # noqa: F821
+                                        + LG.drift_y_data * drift_y_mask * (data_y - y0_bongflow)  # noqa: F821
+                                        + LG.drift_y_sync * drift_y_mask * (data_barf_y - y0_bongflow)  # noqa: F821
                                         + LG.drift_y_guide * drift_y_mask * (y0_bongflow_orig - y0_bongflow)
                                     )
 

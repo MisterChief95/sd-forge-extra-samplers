@@ -10,7 +10,7 @@
 import torch
 
 from torch import Tensor
-from typing import Optional, Callable, Tuple, Dict, Any, Union, TYPE_CHECKING, TypeVar
+from typing import Optional, Tuple, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .rk_method_beta import RK_Method_Exponential, RK_Method_Linear
@@ -19,10 +19,9 @@ import comfy.model_patcher
 import comfy.supported_models
 
 from .noise_classes import NOISE_GENERATOR_CLASSES, NOISE_GENERATOR_CLASSES_SIMPLE
-from .constants import MAX_STEPS
 
 from ..helper import ExtraOptions, has_nested_attr
-from ..latents import normalize_zscore, get_orthogonal, get_collinear
+from ..latents import normalize_zscore
 from ..res4lyf import RESplain
 
 

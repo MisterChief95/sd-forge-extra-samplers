@@ -6,6 +6,8 @@ import torch
 
 from backend.logging import setup_logger
 
+from modules import sd_samplers, sd_samplers_common
+from modules.sd_samplers_kdiffusion import KDiffusionSampler
 from modules_forge.packages.k_diffusion.sampling import to_d
 
 logger = logging.getLogger("extra_samplers")
@@ -326,7 +328,9 @@ def register_unique(label: str, func, aliases=None, options=None) -> None:
         logger.warning(f"'{label}' already registered (or alias collision). Skipping.")
         return
 
-    ctor = lambda m, f=func: KDiffusionSampler(f, m)
+    def ctor(m, f=func):
+        return KDiffusionSampler(f, m)
+
     sdata = sd_samplers_common.SamplerData(label, ctor, aliases, options)
 
     sd_samplers.all_samplers.append(sdata)

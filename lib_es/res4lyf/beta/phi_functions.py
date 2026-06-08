@@ -146,7 +146,7 @@ class Phi:
         return result
 
 
-from mpmath import mp, mpf, gamma, gammainc
+from mpmath import mp, gamma, gammainc
 
 
 def superphi(

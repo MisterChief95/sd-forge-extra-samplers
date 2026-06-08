@@ -13,7 +13,6 @@ from lib_es.utils import (
     ei_h_phi_1,
     ei_h_phi_2,
 )
-from lib_es.const import SEEDS_2_SOLVER_TYPE, SEEDS_2_R, SEEDS_2_DEFAULT_SOLVER_TYPE, SEEDS_2_DEFAULT_R
 
 
 @torch.no_grad()

@@ -9,7 +9,7 @@
 #
 import torch
 from torch import Tensor
-from typing import Optional, Callable, Tuple, List, Dict, Any, Union
+from typing import Optional, Tuple, List, Dict, Any, Union
 
 import comfy.model_patcher
 import comfy.supported_models
@@ -19,7 +19,7 @@ import itertools
 from .phi_functions import Phi
 from .rk_coefficients_beta import get_implicit_sampler_name_list, get_rk_methods_beta
 from ..helper import ExtraOptions
-from ..latents import get_orthogonal, get_collinear, get_cosine_similarity, tile_latent, untile_latent
+from ..latents import get_orthogonal, get_collinear, tile_latent, untile_latent
 
 from ..res4lyf import RESplain
 

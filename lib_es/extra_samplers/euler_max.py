@@ -5,7 +5,7 @@ from modules_forge.packages.k_diffusion.sampling import to_d
 
 from tqdm.auto import trange
 
-from ..utils import sampler_metadata, register_unique
+from ..utils import sampler_metadata
 
 
 @sampler_metadata("Euler Max")

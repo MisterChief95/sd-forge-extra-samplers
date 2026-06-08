@@ -13,7 +13,6 @@ from lib_es.utils import (
     ei_h_phi_1,
     ei_h_phi_2,
 )
-from lib_es.const import SEEDS_3_R1, SEEDS_3_R2, SEEDS_3_DEFAULT_R1, SEEDS_3_DEFAULT_R2
 
 
 @torch.no_grad()

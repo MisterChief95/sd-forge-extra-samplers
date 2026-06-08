@@ -12,9 +12,8 @@ import torch.nn.functional as F
 from torch import Tensor
 
 import itertools
-import copy
 
-from typing import Optional, Callable, Tuple, Dict, Any, Union, TYPE_CHECKING, TypeVar
+from typing import Optional, Tuple, TYPE_CHECKING, TypeVar
 
 if TYPE_CHECKING:
     from .noise_classes import NoiseGenerator
@@ -49,16 +48,13 @@ from ..latents import (
     get_pearson_similarity,
     get_slerp_weight_for_cossim,
     normalize_latent,
-    hard_light_blend,
     slerp_tensor,
     get_orthogonal_noise_from_channelwise,
-    get_edge_mask,
 )
 
 from .rk_method_beta import RK_Method_Beta
 from .constants import MAX_STEPS
 
-from ..models import PRED
 
 
 # from ..latents import hard_light_blend, normalize_latent

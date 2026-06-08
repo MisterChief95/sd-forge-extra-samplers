@@ -12,10 +12,10 @@ from torch import Tensor
 
 import copy
 import math
-from mpmath import mp, mpf, factorial, exp
+from mpmath import mp, mpf
 
 mp.dps = 80
-from typing import Optional, Callable, Tuple, Dict, Any, Union, TYPE_CHECKING, TypeVar
+from typing import Optional
 
 from .deis_coefficients import get_deis_coeff_list
 from .phi_functions import phi, Phi, calculate_gamma
@@ -23,7 +23,7 @@ from .phi_functions import phi, Phi, calculate_gamma
 from ..helper import ExtraOptions, get_extra_options_kv, extra_options_flag
 
 
-from itertools import permutations, combinations
+from itertools import permutations
 import random
 
 from ..res4lyf import get_display_sampler_category

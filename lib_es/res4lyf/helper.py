@@ -8,8 +8,7 @@
 # See PORTING_NOTES.md for Forge-specific divergence notes.
 #
 import torch
-import torch.nn.functional as F
-from typing import Optional, Callable, Tuple, Dict, Any, Union, TYPE_CHECKING, TypeVar, List
+from typing import List
 
 import re
 import functools
@@ -620,7 +619,7 @@ class FrameWeightsManager:
                     weights_str = parts[0].strip()
                     try:
                         multiplier = float(parts[1].strip())
-                    except ValueError as e:
+                    except ValueError:
                         RESplain(f"Invalid multiplier format: {parts[1]}")
 
             try:

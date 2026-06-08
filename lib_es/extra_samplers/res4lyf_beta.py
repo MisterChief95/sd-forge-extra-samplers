@@ -1,6 +1,6 @@
 import torch
 
-import lib_es.res4lyf  # installs the local comfy compatibility shim
+import lib_es.res4lyf  # noqa: F401 - installs the local comfy compatibility shim
 from comfy.model_sampling import CONST, EDM, EPS, IMG_TO_IMG, V_PREDICTION, X0
 
 from lib_es.utils import sampler_metadata

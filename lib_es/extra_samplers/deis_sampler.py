@@ -3,7 +3,6 @@ from tqdm.auto import trange
 
 from modules_forge.packages.k_diffusion import deis
 from lib_es.utils import sampler_metadata
-from lib_es.const import DEIS_MAX_ORDER, DEIS_MODE, DEIS_DEFAULT_MAX_ORDER, DEIS_DEFAULT_MODE
 
 
 # From https://github.com/zju-pi/diff-sampler/blob/main/diff-solvers-main/solvers.py
