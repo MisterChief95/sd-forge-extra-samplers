@@ -1,13 +1,17 @@
 import torch
 from tqdm.auto import trange
-from modules_forge.packages.k_diffusion.sampling import default_noise_sampler, get_ancestral_step, to_d
+from modules_forge.packages.k_diffusion.sampling import (
+    BrownianTreeNoiseSampler,
+    get_ancestral_step,
+    to_d,
+)
 
 from lib_es.utils import sampler_metadata
 
 
 @sampler_metadata(
     "Heun Ancestral",
-    {"uses_ensd": True},
+    {"uses_ensd": True, "sampler_order": 2},
 )
 @torch.no_grad()
 def sample_heun_ancestral(
@@ -23,6 +27,7 @@ def sample_heun_ancestral(
 ):
     """
     Ancestral sampling with Heun's method steps.
+    Based on Algorithm 2 (Heun steps) from Karras et al. (2022).
 
     Args:
         model: The model to sample from.
@@ -36,46 +41,48 @@ def sample_heun_ancestral(
         noise_sampler: A function that returns noise.
     """
     extra_args = {} if extra_args is None else extra_args
-    noise_sampler = default_noise_sampler(x) if noise_sampler is None else noise_sampler
     s_in = x.new_ones([x.shape[0]])
 
+    sigma_min, sigma_max = sigmas[sigmas > 0].min(), sigmas.max()
+    seed = extra_args.get("seed", None)
+    noise_sampler = (
+        BrownianTreeNoiseSampler(x, sigma_min, sigma_max, seed=seed, cpu=True)
+        if noise_sampler is None
+        else noise_sampler
+    )
+
     for i in trange(len(sigmas) - 1, disable=disable):
-        # Get current and next sigma
-        sigma = sigmas[i]
-
-        # Run denoising model
-        denoised = model(x, sigma * s_in, **extra_args)
-
-        # Calculate ancestral step parameters
-        sigma_down, sigma_up = get_ancestral_step(sigma, sigmas[i + 1], eta=eta)
-
+        denoised = model(x, sigmas[i] * s_in, **extra_args)
+        d = to_d(x, sigmas[i], denoised)
         if callback is not None:
-            callback({"x": x, "i": i, "sigma": sigma, "sigma_hat": sigma, "denoised": denoised})
+            callback({"x": x, "i": i, "sigma": sigmas[i], "sigma_hat": sigmas[i], "denoised": denoised})
 
-        # Calculate the derivative
-        d = to_d(x, sigma, denoised)
+        dt = sigmas[i + 1] - sigmas[i]
 
-        # Determine step size
-        dt = sigma_down - sigma
-
-        if sigma_down == 0:
-            # For the last step, use Euler method for stability
+        if sigmas[i + 1] == 0:
+            # Euler method for final step
             x = x + d * dt
         else:
             # Heun's method (predictor-corrector)
             # 1. Predictor step (Euler)
             x_2 = x + d * dt
 
-            # 2. Evaluate at the predicted point
-            denoised_2 = model(x_2, sigma_down * s_in, **extra_args)
-            d_2 = to_d(x_2, sigma_down, denoised_2)
+            # 2. Evaluate at the predicted point (at sigmas[i+1], not sigma_down)
+            denoised_2 = model(x_2, sigmas[i + 1] * s_in, **extra_args)
+            d_2 = to_d(x_2, sigmas[i + 1], denoised_2)
 
-            # 3. Corrector step (average of gradients)
+            # 3. Corrector step (average of derivatives)
             d_prime = (d + d_2) / 2
-            x = x + d_prime * dt
 
-            # Add noise according to ancestral sampling formula
-            if sigma_up > 0:
-                x = x + noise_sampler(sigma, sigmas[i + 1]) * s_noise * sigma_up
+            # Calculate ancestral step parameters
+            sigma_down, sigma_up = get_ancestral_step(sigmas[i], sigmas[i + 1], eta=eta)
+
+            # Step to sigma_down using averaged derivative
+            dt_down = sigma_down - sigmas[i]
+            x = x + d_prime * dt_down
+
+            # Add noise to reach sigmas[i+1]
+            if sigma_up > 0 and s_noise > 0:
+                x = x + noise_sampler(sigmas[i], sigmas[i + 1]) * s_noise * sigma_up
 
     return x

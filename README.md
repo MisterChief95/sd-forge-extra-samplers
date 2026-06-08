@@ -24,7 +24,6 @@ This repository provides additional samplers to the Forge Neo WebUI.
   - Extended Reverse Time SDE
   - Gradient Estimation
   - Heun Ancestral
-  - Kohaku LoNyu Yog
   - Langevin Euler (Experimental)
   - Res Multistep
   - Res Multistep CFG++
@@ -72,30 +71,30 @@ Contributions are welcome! Please open an issue or submit a pull request for any
 
 ## Acknowledgements
 
-If any of these are incorrect please let me know!
+This extension builds on work from the broader Stable Diffusion and ComfyUI
+sampler ecosystem. Thank you to the developers of AUTOMATIC1111, Forge, Forge
+Classic, and the projects credited below.
 
-- Thanks to the developers of Automatic1111 and Forge.
-- [Koishi-Star](https://github.com/Koishi-Star/Euler-Smea-Dyn-Sampler) for the following sampler contributions:
-  - Euler Negative
-  - Euler Dy
-  - Euler Dy Negative
-  - Euler SMEA Dy (Euler SMEA Dy Negative based on this)
-  - Kohaku LoNyu Yog
-- [licyk](https://github.com/licyk/advanced_euler_sampler_extension/tree/main) for the following sampler contributions:
-  - Euler Max
-  - Euler SMEA
-- [Panchovix](https://github.com/Panchovix/stable-diffusion-webui-reForge) for the following sampler contributions:
-  - Res Multistep
-  - Res Multistep CFG++
-- [comfyanonymous](https://github.com/comfyanonymous/ComfyUI) for the following sampler contributions:
-  - Gradient Estimation
-  - Extended Reverse Time SDE
-  - Res Multistep
-  - Res Multistep CFG++
-  - Res Multistep Ancestral
-  - Res Multistep Ancestral CFG++
-- Euler Multipass
-  - Original Implementation: [aria1th](https://github.com/aria1th)
-  - CFG++ Implementation: [LaVie024](https://github.com/LaVie024)
-  - Final ComfyUI implementation: [catboxanon](https://github.com/catboxanon)
-- Special thanks to the contributors of this repository.
+- [Koishi-Star / Euler-Smea-Dyn-Sampler](https://github.com/Koishi-Star/Euler-Smea-Dyn-Sampler):
+  Euler Negative, Euler Dy, Euler Dy Negative, Euler SMEA Dy,
+  and Euler SMEA Dy Negative.
+- [licyk / advanced_euler_sampler_extension](https://github.com/licyk/advanced_euler_sampler_extension):
+  Euler Max and Euler SMEA.
+- [Panchovix / stable-diffusion-webui-reForge](https://github.com/Panchovix/stable-diffusion-webui-reForge):
+  Res Multistep and Res Multistep CFG++.
+- [comfyanonymous / ComfyUI](https://github.com/comfyanonymous/ComfyUI):
+  Gradient Estimation, Extended Reverse Time SDE, Res Multistep,
+  Res Multistep CFG++, Res Multistep Ancestral, and
+  Res Multistep Ancestral CFG++.
+- Euler Multipass: original implementation by
+  [aria1th](https://github.com/aria1th), CFG++ implementation by
+  [LaVie024](https://github.com/LaVie024), and final ComfyUI implementation by
+  [catboxanon](https://github.com/catboxanon).
+- [ClownsharkBatwing / RES4LYF](https://github.com/ClownsharkBatwing/RES4LYF):
+  RES4LYF beta sampler math and helper code used by the Forge RES4LYF sampler
+  port. Files under `lib_es/res4lyf` include per-file AGPLv3 attribution
+  headers, and `lib_es/res4lyf/PORTING_NOTES.md` documents Forge-specific
+  changes.
+
+If an attribution is incomplete or incorrect, please open an issue or pull
+request so it can be corrected.

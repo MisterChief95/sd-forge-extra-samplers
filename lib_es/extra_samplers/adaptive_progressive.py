@@ -116,7 +116,7 @@ def sample_adaptive_progressive(
         # Special case for final step
         if sigmas[i + 1] == 0:
             x = denoised
-            break
+            continue
 
         # Calculate step direction based on phase
         if prev_d is None:

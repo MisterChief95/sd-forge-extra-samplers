@@ -12,7 +12,12 @@ def add_schedulers():
     """
     Add extra schedulers to the list of schedulers in the webui.
     """
+    new_schedulers: int = 0
+
     for scheduler in extra_scheduler_list:
         if scheduler.name not in sched.schedulers_map:
             sched.schedulers.append(scheduler)
             sched.schedulers_map = {**{x.name: x for x in sched.schedulers}, **{x.label: x for x in sched.schedulers}}
+            new_schedulers += 1
+
+    print(f"[Extra Samplers] Added {new_schedulers} new schedulers")

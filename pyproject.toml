@@ -50,6 +50,13 @@ unfixable = []
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
+[tool.ruff.lint.per-file-ignores]
+# Ported RES4LYF math/sampler code intentionally keeps upstream formulas,
+# scratch variables, and import placement close to the source.
+"lib_es/res4lyf/beta/*.py" = ["E402", "E712", "E721", "E731", "E741", "F841"]
+"lib_es/res4lyf/helper.py" = ["E721", "E722", "E731", "F841"]
+"lib_es/res4lyf/latents.py" = ["E402", "E721", "F841"]
+
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
 quote-style = "double"

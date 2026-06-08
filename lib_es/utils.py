@@ -1,9 +1,17 @@
-from enum import Enum
+import logging
 import math
+from enum import Enum
 
 import torch
 
+from backend.logging import setup_logger
+
+from modules import sd_samplers, sd_samplers_common
+from modules.sd_samplers_kdiffusion import KDiffusionSampler
 from modules_forge.packages.k_diffusion.sampling import to_d
+
+logger = logging.getLogger("extra_samplers")
+setup_logger(logger)
 
 
 def clamp(x: int | float, lower: int | float, upper: int | float) -> int | float:
@@ -227,4 +235,108 @@ def extend_sigmas(
     if len(sigmas) > 0:
         extended_sigmas.append(sigmas[-1])
 
-    return torch.FloatTensor(extended_sigmas)
+    return torch.FloatTensor(extended_sigmas).to(sigmas.device)
+
+
+def ei_h_phi_1(h: torch.Tensor) -> torch.Tensor:
+    """Compute h*phi_1(h) = expm1(h) for exponential integrator"""
+    return torch.expm1(h)
+
+
+def ei_h_phi_2(h: torch.Tensor) -> torch.Tensor:
+    """Compute h*phi_2(h) = (expm1(h) - h) / h"""
+    return (torch.expm1(h) - h) / h
+
+
+def safe_sqrt(x: torch.Tensor, eps: float = 1e-8) -> torch.Tensor:
+    """Numerically stable sqrt - clamps negative values before sqrt"""
+    return (x.clamp(min=0) + eps).sqrt()
+
+
+def setup_cfg_pp(extra_args: dict, post_cfg_function) -> dict:
+    """
+    Setup CFG++ by injecting post-cfg function into model_options.
+
+    This is the standardized method for enabling CFG++ across all samplers.
+    It uses the model_options dict approach which is more portable and
+    maintainable than directly accessing UnetPatcher.
+
+    Args:
+        extra_args: The extra_args dict passed to the sampler
+        post_cfg_function: Callback function to capture uncond_denoised.
+                          Should have signature: (args: dict) -> denoised
+
+    Returns:
+        Modified extra_args dict with CFG++ configuration
+
+    Example:
+        def post_cfg_function(args):
+            nonlocal uncond_denoised
+            uncond_denoised = args["uncond_denoised"]
+            return args["denoised"]
+
+        if cfg_pp:
+            extra_args = setup_cfg_pp(extra_args, post_cfg_function)
+    """
+    from backend.patcher.base import set_model_options_post_cfg_function
+
+    model_options = extra_args.get("model_options", {}).copy()
+    extra_args["model_options"] = set_model_options_post_cfg_function(
+        model_options, post_cfg_function, disable_cfg1_optimization=True
+    )
+    return extra_args
+
+
+def enable_cfg_pp_simple(model, extra_args: dict) -> dict:
+    """
+    Enable CFG++ for samplers that directly use model.last_noise_uncond.
+
+    This is for samplers like euler_multipass that don't need a callback
+    and just read model.last_noise_uncond directly. Uses model_options
+    approach instead of directly accessing UnetPatcher.
+
+    Args:
+        model: The model object
+        extra_args: The extra_args dict passed to the sampler
+
+    Returns:
+        Modified extra_args dict with CFG++ enabled
+
+    Example:
+        if cfg_pp:
+            extra_args = enable_cfg_pp_simple(model, extra_args)
+            # Then later: d = model.last_noise_uncond
+    """
+    model.need_last_noise_uncond = True
+
+    # Use model_options approach instead of direct UnetPatcher access
+    model_options = extra_args.get("model_options", {}).copy()
+    model_options["disable_cfg1_optimization"] = True
+    extra_args["model_options"] = model_options
+
+    return extra_args
+
+
+def register_unique(label: str, func, aliases=None, options=None) -> None:
+    aliases = list(dict.fromkeys(aliases or []))
+    options = options or {}
+
+    existing_names = {s.name for s in sd_samplers.all_samplers}
+    existing_aliases = {a for s in sd_samplers.all_samplers for a in (getattr(s, "aliases", []) or [])}
+
+    if label in existing_names or any(a in existing_aliases for a in aliases):
+        logger.warning(f"'{label}' already registered (or alias collision). Skipping.")
+        return
+
+    def ctor(m, f=func):
+        return KDiffusionSampler(f, m)
+
+    sdata = sd_samplers_common.SamplerData(label, ctor, aliases, options)
+
+    sd_samplers.all_samplers.append(sdata)
+    sd_samplers.all_samplers_map = {s.name: s for s in sd_samplers.all_samplers}
+
+    if hasattr(sd_samplers, "set_samplers"):
+        sd_samplers.set_samplers()
+
+    logger.info(f"registered sampler: {label}")
