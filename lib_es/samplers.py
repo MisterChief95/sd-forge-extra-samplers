@@ -44,6 +44,11 @@ samplers_data_k_diffusion: list[SamplerData] = [
 
 
 def add_extra_samplers():
+    new_samplers: int = 0
+
     for sampler in samplers_data_k_diffusion:
         if sampler.name not in [x.name for x in all_samplers]:
             add_sampler(sampler)
+            new_samplers += 1
+
+    print(f"[Extra Samplers] Added {new_samplers} new samplers")

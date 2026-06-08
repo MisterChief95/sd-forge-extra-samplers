@@ -7,7 +7,7 @@ from modules_forge.packages.k_diffusion.sampling import to_d
 from modules import errors
 
 import lib_es.const as consts
-from lib_es.utils import sampler_metadata
+from lib_es.utils import sampler_metadata, setup_cfg_pp
 
 
 def compute_optimal_gamma(steps: int, adaptive: bool = True) -> float:
@@ -97,6 +97,7 @@ def sample_gradient_estimation(
     validate_sigmas: bool = False,
     eta: float = 0.1,
     nu: float = 2.0,
+    cfg_pp: bool = False,
 ) -> torch.Tensor:
     """
     Gradient-estimation sampler as described in "Interpreting and Improving Diffusion Models from an Optimization Perspective".
@@ -115,6 +116,7 @@ def sample_gradient_estimation(
         validate_sigmas: Whether to validate the noise schedule
         eta: Error parameter for schedule validation (default 0.1)
         nu: Accuracy parameter for schedule validation (default 2.0)
+        cfg_pp: Whether to use CFG++ (default False)
 
     Returns:
         Denoised tensor
@@ -130,6 +132,16 @@ def sample_gradient_estimation(
     s_in = x.new_ones([x.shape[0]])
     old_d = None
     steps = len(sigmas) - 1
+    uncond_denoised = None
+
+    # CFG++ setup
+    def post_cfg_function(args):
+        nonlocal uncond_denoised
+        uncond_denoised = args["uncond_denoised"]
+        return args["denoised"]
+
+    if cfg_pp:
+        extra_args = setup_cfg_pp(extra_args, post_cfg_function)
 
     # Schedule validation
     if validate_sigmas:
@@ -158,7 +170,11 @@ def sample_gradient_estimation(
     # Main sampling loop
     for i in trange(len(sigmas) - 1, disable=disable):
         denoised = model(x, sigmas[i] * s_in, **extra_args)
-        d = to_d(x, sigmas[i], denoised)
+
+        if cfg_pp:
+            d = to_d(x, sigmas[i], uncond_denoised)
+        else:
+            d = to_d(x, sigmas[i], denoised)
 
         if callback is not None:
             callback({"x": x, "i": i, "sigma": sigmas[i], "sigma_hat": sigmas[i], "denoised": denoised})
@@ -167,14 +183,54 @@ def sample_gradient_estimation(
 
         if i == 0:
             # Euler method for first step
-            x = x + d * dt
+            if cfg_pp:
+                x = denoised + d * dt
+            else:
+                x = x + d * dt
         else:
             # Gradient estimation
             current_gamma = gammas[i].item() if timestep_adaptive_gamma else ge_gamma
 
             d_bar = current_gamma * d + (1 - current_gamma) * old_d
-            x = x + d_bar * dt
+
+            if cfg_pp:
+                x = x + (denoised - uncond_denoised)
+                x = x + d_bar * dt
+            else:
+                x = x + d_bar * dt
 
         old_d = d
 
     return x
+
+
+@torch.no_grad()
+@sampler_metadata("Gradient Estimation CFG++", {"scheduler": "sgm_uniform"})
+def sample_gradient_estimation_cfg_pp(
+    model,
+    x: torch.Tensor,
+    sigmas: torch.Tensor,
+    extra_args: Optional[dict[str, Any]] = None,
+    callback: Optional[Callable] = None,
+    disable: Optional[bool] = None,
+    validate_sigmas: bool = False,
+    eta: float = 0.1,
+    nu: float = 2.0,
+) -> torch.Tensor:
+    """
+    Gradient-estimation sampler with CFG++ support.
+
+    This is a wrapper around sample_gradient_estimation that enables CFG++ by default.
+    """
+    return sample_gradient_estimation(
+        model,
+        x,
+        sigmas,
+        extra_args=extra_args,
+        callback=callback,
+        disable=disable,
+        validate_sigmas=validate_sigmas,
+        eta=eta,
+        nu=nu,
+        cfg_pp=True,
+    )

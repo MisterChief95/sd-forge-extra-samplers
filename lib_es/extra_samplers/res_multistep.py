@@ -2,9 +2,8 @@ import torch
 from tqdm.auto import trange
 
 from modules_forge.packages.k_diffusion.sampling import get_ancestral_step, to_d, default_noise_sampler
-from backend.patcher.unet import UnetPatcher
 
-from lib_es.utils import sampler_metadata
+from lib_es.utils import sampler_metadata, setup_cfg_pp
 
 
 def sigma_fn(t):
@@ -90,6 +89,7 @@ def res_multistep(
     noise_sampler = default_noise_sampler(x) if noise_sampler is None else noise_sampler
     s_in = x.new_ones([x.shape[0]])
 
+    old_sigma_down = None
     old_denoised = None
     uncond_denoised = None
 
@@ -100,10 +100,7 @@ def res_multistep(
         return args["denoised"]
 
     if cfg_pp:
-        model.need_last_noise_uncond = True
-        unet_patcher: UnetPatcher = model.inner_model.inner_model.forge_objects.unet
-        unet_patcher.model_options["disable_cfg1_optimization"] = True  # not sure if this really works
-        unet_patcher.set_model_sampler_post_cfg_function(post_cfg_function)
+        extra_args = setup_cfg_pp(extra_args, post_cfg_function)
 
     for i in trange(len(sigmas) - 1, disable=disable):
         denoised = model(x, sigmas[i] * s_in, **extra_args)
@@ -121,9 +118,9 @@ def res_multistep(
                 x = x + d * dt
         else:
             # Second order multistep method in https://arxiv.org/pdf/2308.02157
-            t, t_next, t_prev = t_fn(sigmas[i]), t_fn(sigma_down), t_fn(sigmas[i - 1])
+            t, t_old, t_next, t_prev = t_fn(sigmas[i]), t_fn(old_sigma_down), t_fn(sigma_down), t_fn(sigmas[i - 1])
             h = t_next - t
-            c2 = (t_prev - t) / h
+            c2 = (t_prev - t_old) / h
 
             phi1_val, phi2_val = phi1_fn(-h), phi2_fn(-h)
             b1 = torch.nan_to_num(phi1_val - phi2_val / c2, nan=0.0)
@@ -143,6 +140,7 @@ def res_multistep(
             old_denoised = uncond_denoised
         else:
             old_denoised = denoised
+        old_sigma_down = sigma_down
     return x
 
 

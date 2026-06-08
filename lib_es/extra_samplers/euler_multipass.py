@@ -3,7 +3,7 @@ from tqdm import trange
 
 from modules_forge.packages.k_diffusion.sampling import get_ancestral_step, to_d
 
-from lib_es.utils import default_noise_sampler, extend_sigmas, sampler_metadata
+from lib_es.utils import default_noise_sampler, extend_sigmas, sampler_metadata, enable_cfg_pp_simple
 
 
 # ==============================================================================================================
@@ -59,8 +59,7 @@ def euler_ancestral_multipass(
     s_in = x.new_ones([x.shape[0]])
 
     if cfg_pp:
-        model.need_last_noise_uncond = True
-        model.inner_model.inner_model.forge_objects.unet.model_options["disable_cfg1_optimization"] = True
+        extra_args = enable_cfg_pp_simple(model, extra_args)
 
     sub_sigmas = extend_sigmas(sigmas, pass_steps, pass_sigma_max, pass_sigma_min)
 
@@ -184,8 +183,7 @@ def euler_multipass(
     noise_sampler = default_noise_sampler(x, seed=seed) if noise_sampler is None else noise_sampler
 
     if cfg_pp:
-        model.need_last_noise_uncond = True
-        model.inner_model.inner_model.forge_objects.unet.model_options["disable_cfg1_optimization"] = True
+        extra_args = enable_cfg_pp_simple(model, extra_args)
 
     s_in = x.new_ones([x.shape[0]])
     sub_sigmas = extend_sigmas(sigmas, pass_steps, pass_sigma_max, pass_sigma_min)
