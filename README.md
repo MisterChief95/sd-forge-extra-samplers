@@ -21,7 +21,6 @@ This repository provides additional samplers to the Forge Neo WebUI.
   - Euler Multipass CFG++
   - Euler a Multipass
   - Euler a Multipass CFG++
-  - Extended Reverse Time SDE
   - Gradient Estimation
   - Heun Ancestral
   - Langevin Euler (Experimental)

@@ -13,7 +13,6 @@ from lib_es.extra_samplers.euler_multipass import (
 )
 from lib_es.extra_samplers.euler_negative import sample_euler_negative
 from lib_es.extra_samplers.deis_sampler import sample_deis
-from lib_es.extra_samplers.extended_reverse_time import sample_er_sde
 from lib_es.extra_samplers.gradient_estimation import (
     sample_gradient_estimation,
     sample_gradient_estimation_cfg_pp,
@@ -59,7 +58,6 @@ __sampler_funcs__ = [
     sample_euler_multipass_cfg_pp,
     sample_euler_ancestral_multipass,
     sample_euler_ancestral_multipass_cfg_pp,
-    sample_er_sde,
     sample_gradient_estimation,
     sample_gradient_estimation_cfg_pp,
     sample_heun_ancestral,
