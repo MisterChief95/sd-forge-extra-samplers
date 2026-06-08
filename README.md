@@ -29,6 +29,15 @@ This repository provides additional samplers to the Forge Neo WebUI.
   - Res Multistep CFG++
   - Res Multistep Ancestral
   - Res Multistep Ancestral CFG++
+  - RES4LYF's `res` Samplers in both SDE and ODE flavors
+    - res_2m
+    - res_3m
+    - res_2s
+    - res_3s
+    - res_4s
+    - res_5s
+    - res_6s
+  - SSPRK3
  
 - Additional Schedulers
   - Linear Log 
