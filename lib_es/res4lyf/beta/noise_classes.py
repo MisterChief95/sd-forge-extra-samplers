@@ -887,7 +887,6 @@ class PerlinNoiseGenerator(NoiseGenerator):
         return noise / noise.std()
 
 
-
 NOISE_GENERATOR_CLASSES = {
     "fractal": FractalNoiseGenerator,
     "gaussian": GaussianNoiseGenerator,

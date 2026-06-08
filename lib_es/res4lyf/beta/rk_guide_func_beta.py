@@ -56,7 +56,6 @@ from .rk_method_beta import RK_Method_Beta
 from .constants import MAX_STEPS
 
 
-
 # from ..latents import hard_light_blend, normalize_latent
 
 
