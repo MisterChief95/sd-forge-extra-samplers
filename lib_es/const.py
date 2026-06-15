@@ -7,9 +7,6 @@ AP_DETAIL_STRENGTH = "exs_ap_detail_strength"
 # Langevin Euler
 LANGEVIN_STRENGTH = "exs_langevin_strength"
 
-# Extended Reverse-Time
-ER_MAX_STAGE = "er_max_stage"
-
 # Gradient Estimation
 GE_GAMMA = "ge_gamma"
 GE_GAMMA_OFFSET = "ge_gamma_offset"
@@ -51,7 +48,3 @@ SA_SOLVER_DEFAULT_PREDICTOR_ORDER = 3
 SA_SOLVER_DEFAULT_CORRECTOR_ORDER = 4
 SA_SOLVER_START_PERCENT = 0.2
 SA_SOLVER_END_PERCENT = 0.8
-
-# ER-SDE VP variant
-ER_SDE_VP_MAX_STAGE = "er_sde_vp_max_stage"
-ER_SDE_VP_INTEGRATION_POINTS = 200

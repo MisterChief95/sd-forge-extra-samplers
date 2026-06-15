@@ -162,25 +162,12 @@ class ExtraSamplerExtension(scripts.Script):
                     info="Validate the noise schedule (For debugging purposes).",
                 )
 
-            with gr.Accordion(label="Extended Reverse SDE", open=False):
-                gr.Markdown("Extended reverse SDE sampler.")
-                gr.Markdown("Max stage for extended reverse SDE.")
-                max_stage = gr.Slider(
-                    minimum=1,
-                    maximum=3,
-                    step=1,
-                    value=from_setting_or_default(consts.ER_MAX_STAGE, 3),
-                    label="Max Stage",
-                )
-                max_stage.change(fn=lambda value: on_change_update_setting(consts.MAX_STAGE, value), inputs=[max_stage])
-
         return [
             euler_a_end,
             dpm_2m_end,
             ancestral_eta,
             detail_strength,
             langevin_strength,
-            max_stage,
             adaptive_steps,
             use_timestep_adaptive_gamma,
             gamma,
@@ -202,7 +189,6 @@ class ExtraSamplerExtension(scripts.Script):
         ancestral_eta: float,
         detail_strength: float,
         langevin_strength: float,
-        max_stage: int,
         use_adaptive_steps: bool,
         use_timestep_adaptive_gamma: bool,
         gamma: float,
@@ -236,8 +222,6 @@ class ExtraSamplerExtension(scripts.Script):
                     consts.GE_VALIDATE_SCHEDULE: validate_schedule,
                 },
             )
-        elif p.sampler_name == "Extended Reverse SDE":
-            self.get_values_and_apply(p, {consts.ER_MAX_STAGE: max_stage})
 
 
 section = ("exs", "Extra Samplers")
@@ -292,17 +276,6 @@ def on_settings():
             "Langevin Strength",
             component=gr.Slider,
             component_args={"minimum": 0.0, "maximum": 1.0, "step": 0.01},
-            section=section,
-        ),
-    )
-
-    opts.add_option(
-        consts.ER_MAX_STAGE,
-        OptionInfo(
-            3,
-            "Extended Reverse Time Max Stage",
-            component=gr.Slider,
-            component_args={"minimum": 1, "maximum": 3, "step": 1},
             section=section,
         ),
     )
