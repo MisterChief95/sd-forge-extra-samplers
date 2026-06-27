@@ -23,5 +23,5 @@ def beta_57(
 
     opts.beta_dist_alpha = current_alpha
     opts.beta_dist_beta = current_beta
-    
+
     return tensor
