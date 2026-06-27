@@ -222,6 +222,14 @@ class ExtraSamplerExtension(scripts.Script):
                     consts.GE_VALIDATE_SCHEDULE: validate_schedule,
                 },
             )
+        elif p.scheduler == "beta_57" or p.scheduler == "Beta 57":
+            self.get_values_and_apply(
+                p,
+                {
+                    "Beta schedule alpha": 0.5,
+                    "Beta schedule beta": 0.7,
+                },
+            )
 
 
 section = ("exs", "Extra Samplers")

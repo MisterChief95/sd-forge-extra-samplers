@@ -39,7 +39,8 @@ This repository provides additional samplers to the Forge Neo WebUI.
   - SSPRK3
  
 - Additional Schedulers
-  - Linear Log 
+  - Linear Log
+  - Beta 57
 
 Adds a new extension accordian titled "Extra Samplers" to allow adjusting certain samplers.
 
