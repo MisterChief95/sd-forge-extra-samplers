@@ -1,34 +1,38 @@
 import torch
+from functools import partial
 from tqdm.auto import trange
 
-from modules_forge.packages.k_diffusion.sampling import get_ancestral_step, to_d, default_noise_sampler
+from modules_forge.packages.k_diffusion.sampling import (
+    offset_first_sigma_for_snr,
+    sigma_to_half_log_snr,
+    to_d,
+    default_noise_sampler,
+)
 
-from lib_es.utils import sampler_metadata, setup_cfg_pp
+from lib_es.utils import (
+    is_rf_model,
+    alpha_for,
+    ancestral_step,
+    cfg_pp_ancestral_step,
+    cfg_pp_noise_params,
+    sampler_metadata,
+    setup_cfg_pp,
+)
 
-
-def sigma_fn(t):
-    """
-    Computes the sigma function for a given tensor `t`.
-    The sigma function is defined as the exponential of the negation of `t`.
-    Args:
-        t (torch.Tensor): Input tensor.
-    Returns:
-        torch.Tensor: The result of applying the sigma function to `t`.
-    """
-
-    return t.neg().exp()
-
-
-def t_fn(sigma):
-    """
-    Computes the negative logarithm of the input tensor.
-    Args:
-        sigma (torch.Tensor): A tensor for which the negative logarithm is to be computed.
-    Returns:
-        torch.Tensor: A tensor containing the negative logarithm of the input tensor.
-    """
-
-    return sigma.log().neg()
+# ==============================================================================================
+# Second order multistep solver from https://arxiv.org/pdf/2308.02157
+#
+# Adapted from ComfyUI's comfy/k_diffusion/sampling.py `res_multistep`:
+#   https://github.com/comfyanonymous/ComfyUI  (GPL-3.0)
+#
+# Deviates from upstream in one respect: upstream is eps-only. It takes the exponential
+# integrator's time variable as -log(sigma), which is the half-logSNR only when alpha == 1,
+# and splits ancestral steps with the alpha==1 get_ancestral_step. Rectified-flow models have
+# alpha = 1 - sigma, so both are wrong for them. Here the time variable comes from the model's
+# own predictor via sigma_to_half_log_snr, and the ancestral split is dispatched per model
+# family. Both reduce to the upstream expressions exactly when alpha == 1, so eps-model output
+# is unchanged.
+# ==============================================================================================
 
 
 def phi1_fn(t):
@@ -86,6 +90,25 @@ def res_multistep(
         torch.Tensor: The denoised output tensor.
     """
     extra_args = {} if extra_args is None else extra_args
+
+    if cfg_pp and is_rf_model(model):
+        raise RuntimeError(
+            "Res Multistep CFG++ is not supported on rectified-flow models "
+            "(Flux, SD3, Qwen-Image, Krea, Anima, Wan).\n"
+            "\n"
+            "This sampler's second-order CFG++ step has no published rectified-flow form, "
+            "and the generalizations tried here produced pure noise rather than an image. "
+            "Rather than emit a broken result it stops here.\n"
+            "\n"
+            "Use one of these instead, which are verified on rectified flow:\n"
+            "  - Euler a CFG++            (built in)\n"
+            "  - Euler a Multipass CFG++\n"
+            "  - Gradient Estimation CFG++\n"
+            "  - Res Multistep Ancestral  (no CFG++; second-order and rectified-flow correct)\n"
+            "\n"
+            "Res Multistep CFG++ remains fully supported on epsilon models (SD1.5, SDXL)."
+        )
+
     noise_sampler = default_noise_sampler(x) if noise_sampler is None else noise_sampler
     s_in = x.new_ones([x.shape[0]])
 
@@ -102,11 +125,22 @@ def res_multistep(
     if cfg_pp:
         extra_args = setup_cfg_pp(extra_args, post_cfg_function)
 
+    # The exponential integrator below runs in half-logSNR space, lambda = log(alpha/sigma).
+    # This used to hardcode -log(sigma), which is only lambda when alpha == 1; rectified-flow
+    # models have alpha = 1 - sigma, so lambda is logit(sigma).neg() instead. Deriving it via
+    # the model's predictor keeps both families correct - the same approach seeds_2/seeds_3
+    # and sa_solver already take. offset_first_sigma_for_snr nudges a leading sigma of exactly
+    # 1.0 off the boundary, where RF's logit would otherwise be infinite.
+    model_sampling = model.inner_model.predictor
+    lambda_fn = partial(sigma_to_half_log_snr, model_sampling=model_sampling)
+    sigmas = offset_first_sigma_for_snr(sigmas, model_sampling)
+
     for i in trange(len(sigmas) - 1, disable=disable):
         denoised = model(x, sigmas[i] * s_in, **extra_args)
-        sigma_down, sigma_up = get_ancestral_step(sigmas[i], sigmas[i + 1], eta=eta)
+        sigma_down, sigma_up, alpha_ratio = ancestral_step(model, sigmas[i], sigmas[i + 1], eta)
         if callback is not None:
             callback({"x": x, "i": i, "sigma": sigmas[i], "sigma_hat": sigmas[i], "denoised": denoised})
+
         if sigma_down == 0 or old_denoised is None:
             # Euler method
             if cfg_pp:
@@ -118,28 +152,36 @@ def res_multistep(
                 x = x + d * dt
         else:
             # Second order multistep method in https://arxiv.org/pdf/2308.02157
-            t, t_old, t_next, t_prev = t_fn(sigmas[i]), t_fn(old_sigma_down), t_fn(sigma_down), t_fn(sigmas[i - 1])
-            h = t_next - t
-            c2 = (t_prev - t_old) / h
+            lambda_s, lambda_old = lambda_fn(sigmas[i]), lambda_fn(old_sigma_down)
+            lambda_next, lambda_prev = lambda_fn(sigma_down), lambda_fn(sigmas[i - 1])
+            h = lambda_next - lambda_s
+            c2 = (lambda_prev - lambda_old) / h
 
             phi1_val, phi2_val = phi1_fn(-h), phi2_fn(-h)
             b1 = torch.nan_to_num(phi1_val - phi2_val / c2, nan=0.0)
             b2 = torch.nan_to_num(phi2_val / c2, nan=0.0)
 
+            # DPM-Solver++ data prediction: x carries at sigma_down/sigma_s, and the data
+            # terms are weighted by alpha at the destination. For alpha == 1 this reduces to
+            # the previous exp(-h) * x + h * (...) form exactly.
+            sigma_ratio = sigma_down / sigmas[i]
+            alpha_down = alpha_for(model_sampling, sigma_down)
+
+            # Only eps reaches this with cfg_pp set; RF took the first-order branch above.
             if cfg_pp:
                 x = x + (denoised - uncond_denoised)
-                x = sigma_fn(h) * x + h * (b1 * uncond_denoised + b2 * old_denoised)
+                x = sigma_ratio * x + alpha_down * h * (b1 * uncond_denoised + b2 * old_denoised)
             else:
-                x = sigma_fn(h) * x + h * (b1 * denoised + b2 * old_denoised)
+                x = sigma_ratio * x + alpha_down * h * (b1 * denoised + b2 * old_denoised)
 
-        # Noise addition
+        # Rescale the signal (rectified flow only), then add the ancestral noise
+        if alpha_ratio is not None:
+            x = alpha_ratio * x
+
         if sigmas[i + 1] > 0:
             x = x + noise_sampler(sigmas[i], sigmas[i + 1]) * s_noise * sigma_up
 
-        if cfg_pp:
-            old_denoised = uncond_denoised
-        else:
-            old_denoised = denoised
+        old_denoised = uncond_denoised if cfg_pp else denoised
         old_sigma_down = sigma_down
     return x
 

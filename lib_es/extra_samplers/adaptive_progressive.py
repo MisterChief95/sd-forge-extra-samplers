@@ -1,10 +1,16 @@
 import math
 import torch
 from tqdm.auto import trange
-from modules_forge.packages.k_diffusion.sampling import to_d, get_ancestral_step, default_noise_sampler
+from modules_forge.packages.k_diffusion.sampling import to_d, default_noise_sampler
 
 import lib_es.const as consts
-from lib_es.utils import sampler_metadata
+from lib_es.utils import (
+    ancestral_step,
+    is_rf_model,
+    rf_churn_step,
+    sampler_metadata,
+    scale_sigma_threshold,
+)
 
 
 @sampler_metadata(
@@ -66,6 +72,15 @@ def sample_adaptive_progressive(
 
     euler_end, dpm_end = calc_phase_bounds(steps, euler_a_end, dpm_2m_end)
 
+    # The noise-level tests below were written against eps schedules (sigma up to ~14.6).
+    # Rectified flow tops out at 1.0, where `sigma > 2.0` can never hold and `sigma < 1.0`
+    # always does - so on RF the high-noise DPM++ coefficients became unreachable and detail
+    # enhancement ran on 29 of 30 steps instead of 2. Rescaling by the schedule's own
+    # sigma_max restores the intended split; eps thresholds are returned unchanged.
+    high_noise_sigma = scale_sigma_threshold(model, 2.0, sigmas)
+    detail_sigma = scale_sigma_threshold(model, 1.0, sigmas)
+    detail_falloff_sigma = scale_sigma_threshold(model, 0.2, sigmas)
+
     for i in trange(steps, disable=disable):
         progress = i / steps
 
@@ -94,7 +109,11 @@ def sample_adaptive_progressive(
             gamma = min(s_churn / steps, 2**0.5 - 1) * (1.0 - progress / 0.4)
             sigma_hat = sigmas[i] * (gamma + 1)
             eps = torch.randn_like(x) * s_noise
-            x = x + eps * (sigma_hat**2 - sigmas[i] ** 2).sqrt()
+            if is_rf_model(model):
+                sigma_hat = sigma_hat.clamp(max=1.0 - 1e-4)
+                x = rf_churn_step(x, sigmas[i], sigma_hat, eps)
+            else:
+                x = x + eps * (sigma_hat**2 - sigmas[i] ** 2).sqrt()
         else:
             sigma_hat = sigmas[i]
 
@@ -107,7 +126,7 @@ def sample_adaptive_progressive(
         # Calculate sigma for step
         # Reduce eta as we progress to lower noise in later steps
         step_eta = ancestral_eta if progress < 0.5 else ancestral_eta * (1.0 - min(1.0, (progress - 0.5) * 2.0))
-        sigma_down, sigma_up = get_ancestral_step(sigma_hat, sigmas[i + 1], eta=step_eta)
+        sigma_down, sigma_up, alpha_ratio = ancestral_step(model, sigma_hat, sigmas[i + 1], step_eta)
 
         # Calculate current score
         d = to_d(x, sigma_hat, denoised)
@@ -133,7 +152,7 @@ def sample_adaptive_progressive(
             # Add DPM++ component if needed
             if w_multi > 0:
                 # Adjust coefficients based on noise level
-                if sigma_hat > 2.0:
+                if sigma_hat > high_noise_sigma:
                     # Higher noise: favor current direction
                     c1, c2 = 0.7, 0.3
                 else:
@@ -146,12 +165,12 @@ def sample_adaptive_progressive(
             # Add detail enhancement if needed
             if w_detail > 0 and prev_denoised is not None:
                 # Only apply significant enhancement at lower noise levels
-                if sigma_hat < 1.0:
+                if sigma_hat < detail_sigma:
                     # Calculate detail vector (high frequency components)
                     detail_vector = denoised - prev_denoised
 
                     # Scale based on noise level - stronger at very low noise
-                    detail_scale = detail_strength * min(1.0, 0.2 / (sigma_hat + 0.2))
+                    detail_scale = detail_strength * min(1.0, detail_falloff_sigma / (sigma_hat + detail_falloff_sigma))
 
                     # Apply detail enhancement with adaptive scaling
                     detail_direction = d + detail_vector * detail_scale / dt
@@ -165,6 +184,10 @@ def sample_adaptive_progressive(
 
         # Apply the step
         x = x + direction * dt
+
+        # Rescale the signal (rectified flow only) before the ancestral renoise
+        if alpha_ratio is not None:
+            x = alpha_ratio * x
 
         # Apply ancestral noise with progressive reduction
         if sigma_up > 0:

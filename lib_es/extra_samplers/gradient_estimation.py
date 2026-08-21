@@ -3,11 +3,11 @@ from typing import Any, Optional
 import torch
 from tqdm import trange
 
-from modules_forge.packages.k_diffusion.sampling import to_d
+from modules_forge.packages.k_diffusion.sampling import offset_first_sigma_for_snr, to_d
 from modules import errors
 
 import lib_es.const as consts
-from lib_es.utils import sampler_metadata, setup_cfg_pp
+from lib_es.utils import alpha_for, cfg_pp_ancestral_step, sampler_metadata, setup_cfg_pp
 
 
 def compute_optimal_gamma(steps: int, adaptive: bool = True) -> float:
@@ -167,6 +167,12 @@ def sample_gradient_estimation(
         # from aggressive gradient correction
         gammas = torch.linspace(ge_gamma * 1.2, ge_gamma * 0.8, steps)
 
+    # alpha_s is 0 at sigma=1, exactly where a rectified-flow schedule starts, so nudge the
+    # leading sigma off the boundary before any alpha-scaled CFG++ arithmetic. No-op on eps.
+    model_sampling = model.inner_model.predictor
+    if cfg_pp:
+        sigmas = offset_first_sigma_for_snr(sigmas, model_sampling)
+
     # Main sampling loop
     for i in trange(len(sigmas) - 1, disable=disable):
         denoised = model(x, sigmas[i] * s_in, **extra_args)
@@ -184,7 +190,11 @@ def sample_gradient_estimation(
         if i == 0:
             # Euler method for first step
             if cfg_pp:
-                x = denoised + d * dt
+                # Previously `denoised + d * dt`, with dt negative - the CFG++ step needs
+                # the destination sigma as a positive coefficient, not the step delta.
+                x, _, _ = cfg_pp_ancestral_step(
+                    model_sampling, x, sigmas[i], sigmas[i + 1], denoised, uncond_denoised, eta=0.0
+                )
             else:
                 x = x + d * dt
         else:
@@ -194,7 +204,9 @@ def sample_gradient_estimation(
             d_bar = current_gamma * d + (1 - current_gamma) * old_d
 
             if cfg_pp:
-                x = x + (denoised - uncond_denoised)
+                # The guidance correction is an x0-space quantity, so it carries alpha at
+                # the current sigma before being mixed into the latent (1 on eps models).
+                x = x + alpha_for(model_sampling, sigmas[i]) * (denoised - uncond_denoised)
                 x = x + d_bar * dt
             else:
                 x = x + d_bar * dt
