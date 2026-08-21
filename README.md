@@ -9,7 +9,7 @@ This repository provides additional samplers to the Forge Neo WebUI.
 ## Features
 
 - Additional samplers integrated into the Forge WebUI.
-  - Adaptive Progressive (Experimental)
+  - Adaptive Progressive (Experimental - best with SD 1.5/SDXL)
   - Euler Max
   - Euler Negative
   - Euler Dy
@@ -25,9 +25,9 @@ This repository provides additional samplers to the Forge Neo WebUI.
   - Heun Ancestral
   - Langevin Euler (Experimental)
   - Res Multistep
-  - Res Multistep CFG++
+  - Res Multistep CFG++ (SD1/SDXL only)
   - Res Multistep Ancestral
-  - Res Multistep Ancestral CFG++
+  - Res Multistep Ancestral (SD1/SDXL only)
   - RES4LYF's `res` Samplers in both SDE and ODE flavors
     - res_2m
     - res_3m
@@ -36,6 +36,10 @@ This repository provides additional samplers to the Forge Neo WebUI.
     - res_4s
     - res_5s
     - res_6s
+  - SA Solver
+  - SA Solver Stable
+  - SEEDS2
+  - SEEDS3
   - SSPRK3
  
 - Additional Schedulers
