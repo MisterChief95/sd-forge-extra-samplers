@@ -3,7 +3,7 @@ from tqdm.auto import trange
 from modules_forge.packages.k_diffusion.sampling import default_noise_sampler, to_d
 
 import lib_es.const as consts
-from lib_es.utils import sampler_metadata
+from lib_es.utils import is_rf_model, rf_churn_step, sampler_metadata
 
 
 @sampler_metadata(
@@ -41,8 +41,13 @@ def sample_langevin_euler(
         gamma = min(s_churn / (len(sigmas) - 1), 2**0.5 - 1) if s_tmin <= sigmas[i] <= s_tmax else 0.0
         eps = torch.randn_like(x) * s_noise
         sigma_hat = sigmas[i] * (gamma + 1)
+        if gamma > 0 and is_rf_model(model):
+            sigma_hat = sigma_hat.clamp(max=1.0 - 1e-4)
         if gamma > 0:
-            x = x + eps * (sigma_hat**2 - sigmas[i] ** 2) ** 0.5
+            if is_rf_model(model):
+                x = rf_churn_step(x, sigmas[i], sigma_hat, eps)
+            else:
+                x = x + eps * (sigma_hat**2 - sigmas[i] ** 2) ** 0.5
 
         # Perform model prediction - CFG is now handled by our function
         denoised = model(x, sigma_hat * s_in, **extra_args)
@@ -67,6 +72,16 @@ def sample_langevin_euler(
             noise_scale = langevin_strength * sigma_delta * decay_factor
             noise_scale = torch.minimum(noise_scale, sigmas[i + 1] * 0.5)
 
-            x = x + noise_sampler(sigmas[i], sigmas[i + 1]) * noise_scale
+            noise = noise_sampler(sigmas[i], sigmas[i + 1])
+
+            if is_rf_model(model):
+                # The injection raises the effective noise level above sigma_next, so RF
+                # needs the signal scaled down to match or the latent drifts off the
+                # (1 - t) * x0 + t * n manifold. Expressing it as a churn from sigma_next
+                # up to the combined level applies exactly that correction.
+                sigma_eff = (sigmas[i + 1] ** 2 + noise_scale**2).sqrt()
+                x = rf_churn_step(x, sigmas[i + 1], sigma_eff, noise)
+            else:
+                x = x + noise * noise_scale
 
     return x

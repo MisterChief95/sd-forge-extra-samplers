@@ -2,11 +2,10 @@ import torch
 from tqdm.auto import trange
 from modules_forge.packages.k_diffusion.sampling import (
     BrownianTreeNoiseSampler,
-    get_ancestral_step,
     to_d,
 )
 
-from lib_es.utils import sampler_metadata
+from lib_es.utils import ancestral_step, sampler_metadata
 
 
 @sampler_metadata(
@@ -75,13 +74,16 @@ def sample_heun_ancestral(
             d_prime = (d + d_2) / 2
 
             # Calculate ancestral step parameters
-            sigma_down, sigma_up = get_ancestral_step(sigmas[i], sigmas[i + 1], eta=eta)
+            sigma_down, sigma_up, alpha_ratio = ancestral_step(model, sigmas[i], sigmas[i + 1], eta)
 
             # Step to sigma_down using averaged derivative
             dt_down = sigma_down - sigmas[i]
             x = x + d_prime * dt_down
 
-            # Add noise to reach sigmas[i+1]
+            # Rescale the signal (rectified flow only) and add noise to reach sigmas[i+1]
+            if alpha_ratio is not None:
+                x = alpha_ratio * x
+
             if sigma_up > 0 and s_noise > 0:
                 x = x + noise_sampler(sigmas[i], sigmas[i + 1]) * s_noise * sigma_up
 
