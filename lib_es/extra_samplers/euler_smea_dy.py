@@ -4,7 +4,7 @@ from modules_forge.packages.k_diffusion.sampling import to_d
 
 from tqdm.auto import trange
 
-from lib_es.utils import substep_schedule, dy_sampling_step, smea_sampling_step
+from lib_es.utils import dy_sampling_step, smea_sampling_step
 from lib_es.utils import churn_gamma, is_rf_model, rf_churn_step, sampler_metadata
 
 
@@ -25,12 +25,18 @@ def sample_euler_smea_dy(
     extra_args = {} if extra_args is None else extra_args
     s_in = x.new_ones([x.shape[0]])
 
-    # SMEA (1.25x) then Dy (0.5x). Both change the resolution the model sees, so on
-    # rectified flow they move below RF_SUBSTEP_START_SIGMA rather than running at
-    # sigma ~1.0 where they would dictate framing. eps keeps steps 0 and (1, 2).
-    _substeps = substep_schedule(model, sigmas, (0, 1, 2))
-    smea_steps = set(_substeps[:1])
-    dy_steps = set(_substeps[1:])
+    # SMEA (1.25x) then Dy (0.5x), always at the original step indices (0, then 1, 2) -
+    # deliberately NOT relocated via substep_schedule for rectified flow. Running them at
+    # sigma ~1.0 lets them dictate framing (a DiT/RoPE model can reframe the whole scene,
+    # e.g. a waist-up prompt coming back full-body) - that composition drift is a known,
+    # accepted tradeoff here for the added generation variety it produces, not an oversight.
+    # TEMP: matching upstream's literal `i + 1 // 2 == 1` precedence bug for an A/B test.
+    # `//` binds tighter than `+`, so that's `i + 0 == 1` -> i == 1 only (Dy fires once,
+    # not twice). Revert to the commented-out {1} version below to test that side again.
+    smea_steps = {0}
+    dy_steps = {1, 2}
+    # smea_steps = {0}
+    # dy_steps = {1}
 
     for i in trange(len(sigmas) - 1, disable=disable):
         gamma = churn_gamma(s_churn, len(sigmas) - 1, sigmas[i], s_tmin, s_tmax)

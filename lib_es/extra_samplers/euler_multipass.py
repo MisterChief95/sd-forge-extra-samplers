@@ -97,9 +97,7 @@ def euler_ancestral_multipass(
     # exceeds 1.0, so the window [pass_sigma_min, pass_sigma_max] excluded the entire
     # schedule and the multipass subdivision silently did nothing at all. Rescaling keeps
     # the same early-step window on both families; eps is unchanged.
-    sub_sigmas = extend_sigmas(
-        sigmas, pass_steps, pass_sigma_max, scale_sigma_threshold(model, pass_sigma_min, sigmas)
-    )
+    sub_sigmas = extend_sigmas(sigmas, pass_steps, pass_sigma_max, scale_sigma_threshold(model, pass_sigma_min, sigmas))
 
     if not cfg_pp and is_rf_model(model):
         return sample_euler_ancestral_RF(
@@ -257,9 +255,7 @@ def euler_multipass(
     # exceeds 1.0, so the window [pass_sigma_min, pass_sigma_max] excluded the entire
     # schedule and the multipass subdivision silently did nothing at all. Rescaling keeps
     # the same early-step window on both families; eps is unchanged.
-    sub_sigmas = extend_sigmas(
-        sigmas, pass_steps, pass_sigma_max, scale_sigma_threshold(model, pass_sigma_min, sigmas)
-    )
+    sub_sigmas = extend_sigmas(sigmas, pass_steps, pass_sigma_max, scale_sigma_threshold(model, pass_sigma_min, sigmas))
 
     for i in trange(len(sub_sigmas) - 1, disable=disable):
         # Current sub-step range:

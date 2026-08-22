@@ -10,7 +10,6 @@ from modules import sd_samplers, sd_samplers_common
 from modules.sd_samplers_kdiffusion import KDiffusionSampler
 from modules_forge.packages.k_diffusion.sampling import (
     get_ancestral_step,
-    offset_first_sigma_for_snr,
     sigma_to_half_log_snr,
     to_d,
 )

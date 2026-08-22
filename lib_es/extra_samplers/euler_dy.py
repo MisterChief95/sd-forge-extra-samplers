@@ -44,14 +44,14 @@ def sample_euler_dy(
         denoised = model(x, sigma_hat * s_in, **extra_args)
         d = to_d(x, sigma_hat, denoised)
 
+        # Euler method
+        x = x + d * dt
+
         if sigmas[i + 1] > 0:
             if i in dy_steps:
                 x = dy_sampling_step(x, model, dt, sigma_hat, **extra_args)
 
         if callback is not None:
             callback({"x": x, "i": i, "sigma": sigmas[i], "sigma_hat": sigma_hat, "denoised": denoised})
-
-        # Euler method
-        x = x + d * dt
 
     return x
