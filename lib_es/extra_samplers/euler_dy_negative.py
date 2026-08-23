@@ -4,7 +4,7 @@ from modules_forge.packages.k_diffusion.sampling import to_d
 
 from tqdm.auto import trange
 
-from lib_es.utils import churn_gamma, dy_sampling_step, is_rf_model, rf_churn_step, sampler_metadata
+from lib_es.utils import churn_gamma, dy_sampling_step, is_rf_model, sampler_metadata
 
 
 @sampler_metadata("Euler Dy Negative")
@@ -23,6 +23,7 @@ def sample_euler_dy_negative(
 ):
     extra_args = {} if extra_args is None else extra_args
     s_in = x.new_ones([x.shape[0]])
+    rf = is_rf_model(model)
 
     # NOTE: deliberately NOT on substep_schedule, unlike euler_dy.
     #
@@ -32,18 +33,16 @@ def sample_euler_dy_negative(
     # and returns an inverted palette instead of an image. Same coupling as
     # euler_smea_dy_negative: the substep and the sign flip cannot move independently.
     for i in trange(len(sigmas) - 1, disable=disable):
-        gamma = churn_gamma(s_churn, len(sigmas) - 1, sigmas[i], s_tmin, s_tmax)
-        eps = torch.randn_like(x) * s_noise
+        if rf:
+            gamma = 0.0
+        else:
+            gamma = churn_gamma(model, s_churn, len(sigmas) - 1, sigmas[i], s_tmin, s_tmax)
+            eps = torch.randn_like(x) * s_noise
         sigma_hat = sigmas[i] * (gamma + 1)
-        if gamma > 0 and is_rf_model(model):
-            sigma_hat = sigma_hat.clamp(max=1.0 - 1e-4)
         dt = sigmas[i + 1] - sigma_hat
 
         if gamma > 0:
-            if is_rf_model(model):
-                x = rf_churn_step(x, sigmas[i], sigma_hat, eps)
-            else:
-                x = x - eps * (sigma_hat**2 - sigmas[i] ** 2) ** 0.5
+            x = x - eps * (sigma_hat**2 - sigmas[i] ** 2) ** 0.5
 
         denoised = model(x, sigma_hat * s_in, **extra_args)
         d = to_d(x, sigma_hat, denoised)
