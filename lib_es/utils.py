@@ -173,6 +173,55 @@ def dy_sampling_step(x, model, dt, sigma_hat, **extra_args):
     return _restore_extras(x, original_shape, m, n, extra_row, extra_col, extra_row_content, extra_col_content)
 
 
+@torch.no_grad()
+def dy_sampling_step_blended(x, outer_step, model, dt, sigma_hat, strength=0.5, **extra_args):
+    """Blend the half-resolution Dy direction with the outer Euler direction.
+
+    Untouched lattice locations keep the complete outer Euler step.  At the selected
+    corner of each 2x2 block, interpolate between the outer full-resolution result and
+    the half-resolution result.  This keeps the whole latent on one integration step;
+    the historical additive construction advances those corners twice and can leave
+    high-frequency residuals under-converged.
+    """
+    original_shape = x.shape
+    hd, wd, lead = _lattice_dims(x)
+    m, n = original_shape[hd] // 2, original_shape[wd] // 2
+    extra_row = original_shape[hd] % 2 == 1
+    extra_col = original_shape[wd] % 2 == 1
+    extra_row_content = extra_col_content = None
+
+    if extra_row:
+        extra_row_content = outer_step[..., -1:, :]
+        x = x[..., :-1, :]
+        outer_step = outer_step[..., :-1, :]
+    if extra_col:
+        extra_col_content = outer_step[..., :, -1:]
+        x = x[..., :, :-1]
+        outer_step = outer_step[..., :, :-1]
+
+    _, c = _lattice_gather(x, hd, wd, lead, m, n)
+    outer_blocks, outer_c = _lattice_gather(outer_step, hd, wd, lead, m, n)
+
+    with _Rescaler(model, c, "nearest-exact", **extra_args) as rescaler:
+        denoised = model(c, sigma_hat * c.new_ones([c.shape[0]]), **rescaler.extra_args)
+
+    d = to_d(c, sigma_hat, denoised)
+    dy_c = c + d * dt
+    blended_c = torch.lerp(outer_c, dy_c, strength)
+    result = _lattice_scatter(outer_blocks, blended_c, lead, m, n)
+
+    return _restore_extras(
+        result,
+        original_shape,
+        m,
+        n,
+        extra_row,
+        extra_col,
+        extra_row_content,
+        extra_col_content,
+    )
+
+
 def sampler_metadata(name: str, extra_params: dict = {}, sampler_aliases: list[str] = []):
     def decorator(func):
         func.sampler_extra_params = extra_params
@@ -459,27 +508,26 @@ def cfg_pp_noise_params(model_sampling, sigma, sigma_next, eta: float = 0.0):
     return alpha_t, sigma_up, alpha_t * sigma_down
 
 
-def churn_gamma(s_churn: float, n_steps: int, sigma, s_tmin: float, s_tmax: float) -> float:
+def churn_gamma(model, s_churn: float, n_steps: int, sigma, s_tmin: float, s_tmax: float) -> float:
     """
-    Karras churn factor for this step, matching k-diffusion's sample_euler.
+    Historical epsilon-model churn; rectified-flow models deliberately receive none.
 
-    These samplers previously wrote `max(s_churn / n_steps, 2**0.5 - 1)` where
-    k-diffusion writes `min(...)`. Under `max`, gamma could never fall below 0.414, so
-    churn ran pinned at its ceiling on every step even at the default s_churn=0, and the
-    s_churn slider did nothing at all until it exceeded n_steps * 0.414 (>12 at 30 steps)
-    - the one regime where `max` and `min` agree. Restoring `min` makes s_churn=0 mean no
-    churn and makes the slider monotonic across its whole range.
+    The original epsilon implementations use ``max(s_churn / n_steps, sqrt(2)-1)``.
+    Although that differs from standard Karras churn and forces churn at the default
+    ``s_churn=0``, it is part of these samplers' established output: their early Dy/SMEA
+    transforms and negative rebalances were tuned around the resulting raised sigma and
+    renoise.  Removing it makes the positive samplers soft and can collapse the combined
+    negative sampler.
 
-    That correction also matters far more for RF than for eps. Eps churn only *adds*
-    noise (the signal keeps coefficient 1) on an unbounded sigma, so a pinned 1.414x was
-    survivable. RF mixes via alpha = 1 - sigma on a bounded [0, 1] domain, so 1.414x at
-    sigma=0.9 overshoots sigma_max, clamps to ~1.0, and drives alpha_ratio to ~0.001,
-    replacing the latent with pure noise on exactly the early steps that set composition.
+    RF follows a bounded interpolation path with alpha=1-sigma. Moving backwards and
+    re-noising is not the same operation as epsilon-model churn, and even a logSNR-mapped
+    version dominated the much smaller SMEA/Dy corrections in testing. RF variants are
+    therefore deterministic here: churn parameters are intentionally ignored.
     """
-    if s_churn <= 0 or not (s_tmin <= sigma <= s_tmax):
+    if is_rf_model(model) or not (s_tmin <= sigma <= s_tmax):
         return 0.0
 
-    return min(s_churn / n_steps, 2**0.5 - 1)
+    return max(s_churn / n_steps, 2**0.5 - 1)
 
 
 def setup_cfg_pp(extra_args: dict, post_cfg_function) -> dict:

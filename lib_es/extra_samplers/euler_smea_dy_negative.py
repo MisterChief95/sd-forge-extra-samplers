@@ -5,7 +5,7 @@ from modules_forge.packages.k_diffusion.sampling import to_d
 from tqdm.auto import trange
 
 from lib_es.utils import dy_sampling_step, smea_sampling_step
-from lib_es.utils import churn_gamma, is_rf_model, rf_churn_step, sampler_metadata
+from lib_es.utils import churn_gamma, is_rf_model, sampler_metadata
 
 
 def _negative_substep_rebalance(x, x_pre, denoised, d, dt, sigma_next, rf: bool, flip_scale=1.0):
@@ -111,9 +111,9 @@ def sample_euler_smea_dy_negative(
     s_in = x.new_ones([x.shape[0]])
     rf = is_rf_model(model)
 
-    # SMEA (step 0) then Dy (steps 1, 2), always at the original indices - deliberately
-    # NOT relocated via substep_schedule for rectified flow, matching euler_smea.py and
-    # euler_smea_dy.py.
+    # The negative variant deliberately keeps SMEA (step 0) and Dy at the original early
+    # indices. Unlike the positive samplers, its signal-aware RF reflection is coupled to
+    # the substep timing and is being kept as a separate experimental behavior.
     #
     # The reflection fix above makes relocation possible (it preserves the signal at any
     # sigma, unlike the old whole-latent negation, which only tolerated running near
@@ -123,27 +123,22 @@ def sample_euler_smea_dy_negative(
     # coming back full-body) - and side-by-side testing showed that composition drift is
     # exactly where this sampler's extra variety comes from. Kept as a deliberate tradeoff,
     # not an oversight.
-    # TEMP: matching upstream's literal `i + 1 // 2 == 1` precedence bug for an A/B test.
-    # `//` binds tighter than `+`, so that's `i + 0 == 1` -> i == 1 only (Dy fires once,
-    # not twice). Revert to the commented-out {1} version below to test that side again.
     smea_steps = {0}
-    dy_steps = {1, 2}
-    # smea_steps = {0}
-    # dy_steps = {1}
+    # The historical epsilon expression was `i + 1 // 2 == 1`; due to operator
+    # precedence it fires only at i == 1. Keep RF's intentional second Dy substep.
+    dy_steps = {1, 2} if rf else {1}
 
     for i in trange(len(sigmas) - 1, disable=disable):
-        gamma = churn_gamma(s_churn, len(sigmas) - 1, sigmas[i], s_tmin, s_tmax)
-        eps = torch.randn_like(x) * s_noise
+        if rf:
+            gamma = 0.0
+        else:
+            gamma = churn_gamma(model, s_churn, len(sigmas) - 1, sigmas[i], s_tmin, s_tmax)
+            eps = torch.randn_like(x) * s_noise
         sigma_hat = sigmas[i] * (gamma + 1)
-        if gamma > 0 and rf:
-            sigma_hat = sigma_hat.clamp(max=1.0 - 1e-4)
         dt = sigmas[i + 1] - sigma_hat
 
         if gamma > 0:
-            if rf:
-                x = rf_churn_step(x, sigmas[i], sigma_hat, eps)
-            else:
-                x = x - eps * (sigma_hat**2 - sigmas[i] ** 2) ** 0.5
+            x = x - eps * (sigma_hat**2 - sigmas[i] ** 2) ** 0.5
 
         denoised = model(x, sigma_hat * s_in, **extra_args)
         d = to_d(x, sigma_hat, denoised)
@@ -161,7 +156,11 @@ def sample_euler_smea_dy_negative(
 
             if i in smea_steps:
                 x_pre = x
-                x = smea_sampling_step(x, model, dt, sigma_hat, **extra_args)
+                # EPS has already consumed a full outer Euler step.  Limit the enlarged-
+                # resolution correction to half a step to retain more high-frequency
+                # residual; RF keeps the full step used by its signal-aware rebalance.
+                smea_dt = dt if rf else dt * 0.5
+                x = smea_sampling_step(x, model, smea_dt, sigma_hat, **extra_args)
                 # SMEA re-steps the entire latent, leaving it at tau = sigma_next**2 /
                 # sigma_hat, so the noise term to negate is scaled by tau / sigma_next.
                 x = _negative_substep_rebalance(
