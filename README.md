@@ -80,8 +80,6 @@ Adds a new extension accordian titled "Extra Samplers" to allow adjusting certai
 ### Important
 - Not all samplers work well in every situation. Some will look poor when used for img2img/hires fix.
 - Mix-and-match samplers to find the best combinations. A sampler might look bad with one scheduler but good with another!
-- The `Negative` samplers are meant to produce significant compositional variation from step to step, not subtle detail changes - that's by design, not a bug. Occasional incoherent/noisy outputs are a rare but expected side effect.
-- SMEA/Dy substeps intentionally run at their original schedule position (not relocated for rectified-flow models) to preserve that variety, at the cost of occasional composition drift on DiT-based models (e.g. Flux, Anima).
 
 ## Contributing
 
