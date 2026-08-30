@@ -7,7 +7,7 @@
 # Version 3 (AGPLv3). The rest of this file remains under GNU GPLv3.
 # See PORTING_NOTES.md for Forge-specific divergence notes.
 #
-from comfy.model_sampling import CONST, EDM, EPS, IMG_TO_IMG, V_PREDICTION, X0
+from .model_sampling import CONST, EDM, EPS, IMG_TO_IMG, V_PREDICTION, X0
 
 
 class PRED:

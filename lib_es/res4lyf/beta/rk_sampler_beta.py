@@ -21,9 +21,9 @@ except ImportError:
 from typing import Optional, Callable, Tuple, List, Any
 import copy
 
-from comfy.model_sampling import EPS
-import comfy
+from backend.misc.image_resize import bislerp
 
+from ..model_sampling import EPS
 from ..res4lyf import RESplain
 from ..helper import ExtraOptions, FrameWeightsManager
 from ..latents import (
@@ -252,7 +252,7 @@ def sample_rk_beta(
         if x.shape == state_info["raw_x"].shape:
             x = state_info["raw_x"].to(work_device)  # clone()
         else:
-            denoised = comfy.utils.bislerp(state_info["denoised"], x.shape[-1], x.shape[-2])
+            denoised = bislerp(state_info["denoised"], x.shape[-1], x.shape[-2])
             x = denoised.to(x)
             RENOISE = True
         RESplain("Continuing from raw latent from previous sampler.", debug=False)
@@ -819,7 +819,7 @@ def sample_rk_beta(
                     else:
                         data_prev_ = torch.stack(
                             [
-                                comfy.utils.bislerp(data_prev_item, x.shape[-1], x.shape[-2])
+                                bislerp(data_prev_item, x.shape[-1], x.shape[-2])
                                 for data_prev_item in state_info["data_prev_"]
                             ]
                         )

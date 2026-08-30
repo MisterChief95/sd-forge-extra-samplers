@@ -11,8 +11,8 @@ import torch
 from torch import Tensor
 from typing import Optional, Tuple, List, Dict, Any, Union
 
-import comfy.model_patcher
-import comfy.supported_models
+from backend.misc.image_resize import bislerp
+from backend.patcher.base import set_model_options_post_cfg_function
 
 import itertools
 
@@ -244,7 +244,7 @@ class RK_Method_Beta:
                     positive_control.cond_hint_original.shape[-1] != x.shape[-2] * self.latent_compression_ratio
                     or positive_control.cond_hint_original.shape[-2] != x.shape[-1] * self.latent_compression_ratio
                 ):
-                    positive_control_pretile = comfy.utils.bislerp(
+                    positive_control_pretile = bislerp(
                         positive_control.cond_hint_original.clone().to(torch.float16).to("cuda"),
                         x.shape[-1] * self.latent_compression_ratio,
                         x.shape[-2] * self.latent_compression_ratio,
@@ -514,7 +514,7 @@ class RK_Method_Beta:
                 return args["denoised"]
 
             model_options = extra_args.get("model_options", {}).copy()
-            extra_args["model_options"] = comfy.model_patcher.set_model_options_post_cfg_function(
+            extra_args["model_options"] = set_model_options_post_cfg_function(
                 model_options, post_cfg_function, disable_cfg1_optimization=True
             )
         return extra_args

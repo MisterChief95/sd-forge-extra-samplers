@@ -55,9 +55,7 @@ def sample_euler_smea_dy(
             if sigmas[i + 1] > 0 and i in smea_steps:
                 x = smea_sampling_step(x, model, dt, sigma_hat, **extra_args)
         elif sigmas[i + 1] > 0 and i in dy_steps:
-            x = dy_sampling_step_blended(
-                x, outer_step, model, dt, sigma_hat, strength=0.5, **extra_args
-            )
+            x = dy_sampling_step_blended(x, outer_step, model, dt, sigma_hat, strength=0.5, **extra_args)
         elif sigmas[i + 1] > 0 and i in smea_steps:
             smea_step = smea_sampling_step(x, model, dt, sigma_hat, **extra_args)
             x = torch.lerp(outer_step, smea_step, 0.5)

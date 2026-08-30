@@ -59,9 +59,7 @@ def sample_euler_dy(
                 x_next = dy_sampling_step(x_next, model, dt, sigma_hat, **extra_args)
         else:
             if sigmas[i + 1] > 0 and i in dy_steps:
-                x_next = dy_sampling_step_blended(
-                    x, outer_step, model, dt, sigma_hat, strength=0.5, **extra_args
-                )
+                x_next = dy_sampling_step_blended(x, outer_step, model, dt, sigma_hat, strength=0.5, **extra_args)
             else:
                 x_next = outer_step
 
