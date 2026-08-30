@@ -14,8 +14,6 @@ import re
 import functools
 import copy
 
-from comfy.samplers import SCHEDULER_NAMES
-
 from .res4lyf import RESplain
 
 
@@ -359,20 +357,6 @@ def is_video_model(model):
     except:
         pass
     return is_video_model
-
-
-def is_RF_model(model):
-    from comfy import model_sampling
-
-    modelsampling = model.inner_model.inner_model.model_sampling
-    return isinstance(modelsampling, model_sampling.CONST)
-
-
-def get_res4lyf_scheduler_list():
-    scheduler_names = SCHEDULER_NAMES.copy()
-    if "beta57" not in scheduler_names:
-        scheduler_names.append("beta57")
-    return scheduler_names
 
 
 def move_to_same_device(*tensors):

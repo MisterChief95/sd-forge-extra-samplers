@@ -15,9 +15,7 @@ from typing import Optional, Tuple, Union, TYPE_CHECKING
 if TYPE_CHECKING:
     from .rk_method_beta import RK_Method_Exponential, RK_Method_Linear
 
-import comfy.model_patcher
-import comfy.supported_models
-
+from ..model_sampling import CONST as ModelSamplingCONST
 from .noise_classes import NOISE_GENERATOR_CLASSES, NOISE_GENERATOR_CLASSES_SIMPLE
 
 from ..helper import ExtraOptions, has_nested_attr
@@ -92,8 +90,8 @@ class RK_NoiseSampler:
 
         self.LOCK_H_SCALE = True
 
-        self.CONST = isinstance(model_sampling, comfy.model_sampling.CONST)
-        self.VARIANCE_PRESERVING = isinstance(model_sampling, comfy.model_sampling.CONST)
+        self.CONST = isinstance(model_sampling, ModelSamplingCONST)
+        self.VARIANCE_PRESERVING = isinstance(model_sampling, ModelSamplingCONST)
 
         self.extra_options = extra_options
         self.EO = ExtraOptions(extra_options)

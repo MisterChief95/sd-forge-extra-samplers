@@ -21,20 +21,17 @@ package retain that AGPLv3 attribution in each Python file header.
 Compared against `extensions/RES4LYF` before local attribution headers were
 added:
 
-- Identical upstream code: `helper.py`, `latents.py`,
-  `beta/constants.py`, `beta/deis_coefficients.py`, `beta/phi_functions.py`,
-  `beta/rk_method_beta.py`, `beta/rk_noise_sampler_beta.py`.
-- Small Forge compatibility edits: `beta/noise_classes.py`,
+- Identical upstream code: `latents.py`, `beta/constants.py`,
+  `beta/deis_coefficients.py`, `beta/phi_functions.py`.
+- Small Forge compatibility edits: `helper.py`, `beta/noise_classes.py`,
   `beta/rk_coefficients_beta.py`, `beta/rk_guide_func_beta.py`,
+  `beta/rk_method_beta.py`, `beta/rk_noise_sampler_beta.py`,
   `beta/rk_sampler_beta.py`.
-- Forge shim or reduced modules: `__init__.py`, `beta/__init__.py`,
-  `models.py`, `res4lyf.py`, `sigmas.py`, `style_transfer.py`.
+- Forge shim or reduced modules: `beta/__init__.py`, `models.py`,
+  `res4lyf.py`, `sigmas.py`, `style_transfer.py`.
 
 ## Intentional Divergences
 
-- `__init__.py`: replaces upstream ComfyUI node registration and scheduler
-  registration with a small compatibility shim that provides the `comfy.*`
-  module symbols needed by the retained sampler code inside Forge.
 - `beta/__init__.py`: imports only `rk_sampler_beta`; upstream ComfyUI node
   registration and beta node mappings are omitted because Forge exposes the
   samplers through `lib_es/extra_samplers/res4lyf_beta.py`.

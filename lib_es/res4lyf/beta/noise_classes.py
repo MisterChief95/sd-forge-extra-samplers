@@ -24,7 +24,7 @@ import functools
 from typing import Callable, Tuple
 from math import pi
 
-from comfy.k_diffusion.sampling import BrownianTreeNoiseSampler
+from modules_forge.packages.k_diffusion.sampling import BrownianTreeNoiseSampler
 
 from ..res4lyf import RESplain
 
