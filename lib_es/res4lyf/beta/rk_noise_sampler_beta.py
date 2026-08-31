@@ -15,29 +15,11 @@ from typing import Optional, Tuple, Union, TYPE_CHECKING
 if TYPE_CHECKING:
     from .rk_method_beta import RK_Method_Exponential, RK_Method_Linear
 
-from ..model_sampling import CONST as ModelSamplingCONST
 from .noise_classes import NOISE_GENERATOR_CLASSES, NOISE_GENERATOR_CLASSES_SIMPLE
 
 from ..helper import ExtraOptions, has_nested_attr
 from ..latents import normalize_zscore
 from ..res4lyf import RESplain
-
-
-NOISE_MODE_NAMES = [
-    "none",
-    # "hard_sq",
-    "hard",
-    "lorentzian",
-    "soft",
-    "soft-linear",
-    "softer",
-    "eps",
-    "sinusoidal",
-    "exp",
-    "vpsde",
-    "er4",
-    "hard_var",
-]
 
 
 def get_data_from_step(x, x_next, sigma, sigma_next):  # assumes 100% linear trajectory
@@ -90,8 +72,8 @@ class RK_NoiseSampler:
 
         self.LOCK_H_SCALE = True
 
-        self.CONST = isinstance(model_sampling, ModelSamplingCONST)
-        self.VARIANCE_PRESERVING = isinstance(model_sampling, ModelSamplingCONST)
+        self.CONST = getattr(model_sampling, "prediction_type", None) == "const"
+        self.VARIANCE_PRESERVING = self.CONST
 
         self.extra_options = extra_options
         self.EO = ExtraOptions(extra_options)
@@ -917,11 +899,3 @@ class RK_NoiseSampler:
         self.sampler_mode = sampler_mode
 
         return sigmas, UNSAMPLE
-
-
-def extract_latent_swap_noise(self, x: Tensor, x_noise_swapped: Tensor, sigma: Tensor, old_noise: Tensor) -> Tensor:
-    return (x - x_noise_swapped) / sigma + old_noise
-
-
-def update_latent_swap_noise(self, x: Tensor, sigma: Tensor, old_noise: Tensor, new_noise: Tensor) -> Tensor:
-    return x + sigma * (new_noise - old_noise)

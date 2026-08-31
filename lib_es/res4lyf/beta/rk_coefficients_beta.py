@@ -226,33 +226,6 @@ class DualFormatList(list):
         return any(isinstance(opt, str) and opt.endswith("/" + item) for opt in self)
 
 
-def get_sampler_name_list(nameOnly=False) -> list:
-    sampler_name_list = []
-    for sampler_name in RK_SAMPLER_FOLDER_MAP:
-        if get_display_sampler_category() and not nameOnly:
-            folder_name = RK_SAMPLER_FOLDER_MAP[sampler_name]
-            full_sampler_name = f"{folder_name}/{sampler_name}"
-        else:
-            full_sampler_name = sampler_name
-        if full_sampler_name[0] == "/":
-            full_sampler_name = full_sampler_name[1:]
-        sampler_name_list.append(full_sampler_name)
-    return DualFormatList(sampler_name_list)
-
-
-def get_default_sampler_name(nameOnly=False) -> str:
-    default_sampler_name = "res_2m"
-    # find the key associated with the default value
-    for sampler_name in RK_SAMPLER_FOLDER_MAP:
-        if sampler_name == default_sampler_name:
-            if get_display_sampler_category() and not nameOnly:
-                folder_name = RK_SAMPLER_FOLDER_MAP[sampler_name]
-                return f"{folder_name}/{default_sampler_name}"
-            else:
-                return default_sampler_name
-    return default_sampler_name
-
-
 def get_implicit_sampler_name_list(nameOnly=False) -> list:
     implicit_sampler_name_list = []
     for sampler_name in IRK_SAMPLER_FOLDER_MAP:
@@ -265,43 +238,6 @@ def get_implicit_sampler_name_list(nameOnly=False) -> list:
             full_sampler_name = full_sampler_name[1:]
         implicit_sampler_name_list.append(full_sampler_name)
     return DualFormatList(implicit_sampler_name_list)
-
-
-def get_default_implicit_sampler_name(nameOnly=False) -> str:
-    default_sampler_value = "explicit_diagonal"
-    # find the key associated with the default value
-    for sampler_name in IRK_SAMPLER_FOLDER_MAP:
-        if sampler_name == default_sampler_value:
-            if get_display_sampler_category() and not nameOnly:
-                folder_name = IRK_SAMPLER_FOLDER_MAP[sampler_name]
-                return f"{folder_name}/{default_sampler_value}"
-            else:
-                return default_sampler_value
-    return default_sampler_value
-
-
-def get_full_sampler_name(sampler_name_in: str) -> str:
-    if "/" in sampler_name_in and sampler_name_in[0] != "/":
-        return sampler_name_in
-    for sampler_name in RK_SAMPLER_FOLDER_MAP:
-        if sampler_name == sampler_name_in:
-            folder_name = RK_SAMPLER_FOLDER_MAP[sampler_name]
-            return f"{folder_name}/{sampler_name}"
-    return sampler_name
-
-
-def process_sampler_name(sampler_name_in):
-    processed_name = sampler_name_in.split("/")[-1] if "/" in sampler_name_in else sampler_name_in
-    full_sampler_name = get_full_sampler_name(sampler_name_in)
-
-    if sampler_name_in.startswith("fully_implicit") or sampler_name_in.startswith("diag_implicit"):
-        implicit_sampler_name = processed_name
-        sampler_name = "euler"
-    else:
-        sampler_name = processed_name
-        implicit_sampler_name = "use_explicit"
-
-    return sampler_name, implicit_sampler_name
 
 
 alpha_crouzeix = (2 / (3**0.5)) * math.cos(math.pi / 18)
@@ -3843,28 +3779,6 @@ def gen_first_col_exp_uv(a, b, c, u, v, φ):
     return a, b
 
 
-def rho(j, ci, ck, cl):
-    if j == 2:
-        numerator = ck * cl
-    if j == 3:
-        numerator = -2 * (ck + cl)
-    if j == 4:
-        numerator = 6
-    return numerator / denominator(ci, ck, cl)
-
-
-def mu(j, cd, ci, ck, cl):
-    if j == 2:
-        numerator = -cd * ck * cl
-    if j == 3:
-        numerator = 2 * (cd * ck + cd * cl + ck * cl)
-    if j == 4:
-        numerator = -6 * (cd + ck + cl)
-    if j == 5:
-        numerator = 24
-    return numerator / denominator(ci, cd, ck, cl)
-
-
 def mu_numerator(j, cd, ci, ck, cl):
     if j == 2:
         numerator = -cd * ck * cl
@@ -3920,17 +3834,3 @@ def denominator(ci, *args):
     for arg in args:
         result *= ci - arg
     return result
-
-
-def check_condition_4_2(nodes):
-
-    c12, c13, c14, c15 = nodes
-
-    term_1 = (1 / 5) * (c12 + c13 + c14 + c15)
-    term_2 = (1 / 4) * (c12 * c13 + c12 * c14 + c12 * c15 + c13 * c14 + c13 * c15 + c14 * c15)
-    term_3 = (1 / 3) * (c12 * c13 * c14 + c12 * c13 * c15 + c12 * c14 * c15 + c13 * c14 * c15)
-    term_4 = (1 / 2) * (c12 * c13 * c14 * c15)
-
-    result = term_1 - term_2 + term_3 - term_4
-
-    return abs(result - (1 / 6)) < 1e-6

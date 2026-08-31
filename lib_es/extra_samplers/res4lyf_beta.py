@@ -1,77 +1,6 @@
 import torch
 
-from lib_es.res4lyf.model_sampling import CONST, EDM, EPS, IMG_TO_IMG, V_PREDICTION, X0
-
 from lib_es.utils import sampler_metadata
-
-
-class _ModelSamplingBase:
-    def __init__(self, predictor):
-        self._predictor = predictor
-
-    def __getattr__(self, name):
-        return getattr(self._predictor, name)
-
-    @property
-    def sigma_min(self):
-        return self._predictor.sigma_min
-
-    @property
-    def sigma_max(self):
-        return self._predictor.sigma_max
-
-    def calculate_denoised(self, sigma, model_output, model_input):
-        return self._predictor.calculate_denoised(sigma, model_output, model_input)
-
-    def percent_to_sigma(self, percent):
-        return self._predictor.percent_to_sigma(percent)
-
-    def sigma(self, timestep):
-        return self._predictor.sigma(timestep)
-
-    def timestep(self, sigma):
-        return self._predictor.timestep(sigma)
-
-
-class _EPSModelSampling(_ModelSamplingBase, EPS):
-    pass
-
-
-class _CONSTModelSampling(_ModelSamplingBase, CONST):
-    pass
-
-
-class _VPredictionModelSampling(_ModelSamplingBase, V_PREDICTION):
-    pass
-
-
-class _EDMModelSampling(_ModelSamplingBase, EDM):
-    pass
-
-
-class _X0ModelSampling(_ModelSamplingBase, X0):
-    pass
-
-
-class _Img2ImgModelSampling(_ModelSamplingBase, IMG_TO_IMG):
-    pass
-
-
-def _wrap_model_sampling(predictor):
-    prediction_type = getattr(predictor, "prediction_type", "epsilon")
-    if prediction_type == "const":
-        cls = _CONSTModelSampling
-    elif prediction_type == "v_prediction":
-        cls = _VPredictionModelSampling
-    elif prediction_type == "edm":
-        cls = _EDMModelSampling
-    elif prediction_type == "x0":
-        cls = _X0ModelSampling
-    elif prediction_type == "img_to_img":
-        cls = _Img2ImgModelSampling
-    else:
-        cls = _EPSModelSampling
-    return cls(predictor)
 
 
 class _ForgeInnerModel:
@@ -105,7 +34,7 @@ class _ForgeDenoiser:
         self._model = model
         original_schedule = model.inner_model
         sd_model = original_schedule.inner_model
-        model_sampling = _wrap_model_sampling(sd_model.forge_objects.unet.model.predictor)
+        model_sampling = sd_model.forge_objects.unet.model.predictor
         inner_model = _ForgeInnerModel(sd_model, model_sampling, x.device)
         self.inner_model = _ForgeSchedule(original_schedule, inner_model)
 

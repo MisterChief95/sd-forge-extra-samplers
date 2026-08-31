@@ -8,11 +8,9 @@
 # See PORTING_NOTES.md for Forge-specific divergence notes.
 #
 import torch
-from typing import List
 
 import re
 import functools
-import copy
 
 from .res4lyf import RESplain
 
@@ -108,172 +106,6 @@ def get_extra_options_kv(key, default, extra_options, ret_type=None):
     return ret_type(value)
 
 
-def get_extra_options_list(key, default, extra_options, ret_type=None):
-    default = [default] if type(default) != list else default
-
-    # ret_type = type(default)    if ret_type is None else ret_type
-    ret_type = type(default[0]) if ret_type is None else ret_type
-
-    pattern = rf"^{re.escape(key)}\s*=\s*([a-zA-Z0-9_.,+-]+)\s*$"
-    match = re.search(pattern, extra_options, flags=re.MULTILINE)
-
-    if match:
-        value = match.group(1)
-    else:
-        value = default
-
-    if type(value) == str:
-        value = value.split(",")
-
-    value = [ret_type(value[_]) for _ in range(len(value))]
-
-    return value
-
-
-class OptionsManager:
-    APPEND_OPTIONS = {"extra_options"}
-
-    def __init__(self, options, **kwargs):
-        self.options_list = []
-        if options is not None:
-            self.options_list.append(options)
-
-        for key, value in kwargs.items():
-            if key.startswith("options") and value is not None:
-                self.options_list.append(value)
-
-        self._merged_dict = None
-
-    def add_option(self, option):
-        """Add a single options dictionary"""
-        if option is not None:
-            self.options_list.append(option)
-            self._merged_dict = None  # invalidate cached merged options
-
-    @property
-    def merged(self):
-        """Get merged options with proper priority handling"""
-        if self._merged_dict is None:
-            self._merged_dict = {}
-
-            special_string_options = {key: [] for key in self.APPEND_OPTIONS}
-
-            for options_dict in self.options_list:
-                if options_dict is not None:
-                    for key, value in options_dict.items():
-                        if key in self.APPEND_OPTIONS and value:
-                            special_string_options[key].append(value)
-                        elif isinstance(value, dict):
-                            # Deep merge dictionaries
-                            if key not in self._merged_dict:
-                                self._merged_dict[key] = {}
-
-                            if isinstance(self._merged_dict[key], dict):
-                                self._deep_update(self._merged_dict[key], value)
-                            else:
-                                self._merged_dict[key] = value.copy()
-                        # Special case for FrameWeightsManager
-                        elif key == "frame_weights_mgr" and hasattr(value, "_weight_configs"):
-                            if key not in self._merged_dict:
-                                self._merged_dict[key] = copy.deepcopy(value)
-                            else:
-                                existing_mgr = self._merged_dict[key]
-
-                                if hasattr(value, "device") and value.device != torch.device("cpu"):
-                                    existing_mgr.device = value.device
-
-                                if hasattr(value, "dtype") and value.dtype != torch.float64:
-                                    existing_mgr.dtype = value.dtype
-
-                                # Merge all weight_configs
-                                if hasattr(value, "_weight_configs"):
-                                    for name, config in value._weight_configs.items():
-                                        config_kwargs = config.copy()
-                                        existing_mgr.add_weight_config(name, **config_kwargs)
-                        else:
-                            self._merged_dict[key] = value
-
-            # append special case string options (e.g. extra_options)
-            for key, value in special_string_options.items():
-                if value:
-                    self._merged_dict[key] = "\n".join(value)
-
-        return self._merged_dict
-
-    def update(self, key_or_dict, value=None, append=False):
-        """Update options with a single key-value pair or a dictionary"""
-        if value is not None or isinstance(key_or_dict, (str, list)):
-            # single key-value update
-            key_path = key_or_dict
-            if isinstance(key_path, str):
-                key_path = key_path.split(".")
-
-            update_dict = {}
-            current = update_dict
-
-            for i, key in enumerate(key_path[:-1]):
-                current[key] = {}
-                current = current[key]
-
-            current[key_path[-1]] = value
-
-            self.add_option(update_dict)
-        else:
-            # dictionary update
-            flat_updates = {}
-
-            def _flatten_dict(d, prefix=""):
-                for key, value in d.items():
-                    full_key = f"{prefix}.{key}" if prefix else key
-                    if isinstance(value, dict):
-                        _flatten_dict(value, full_key)
-                    else:
-                        flat_updates[full_key] = value
-
-            _flatten_dict(key_or_dict)
-
-            for key_path, value in flat_updates.items():
-                self.update(key_path, value)  # Recursive call
-
-        return self
-
-    def get(self, key, default=None):
-        return self.merged.get(key, default)
-
-    def _deep_update(self, target_dict, source_dict):
-        for key, value in source_dict.items():
-            if isinstance(value, dict) and key in target_dict and isinstance(target_dict[key], dict):
-                # recursive dict update
-                self._deep_update(target_dict[key], value)
-            else:
-                target_dict[key] = value
-
-    def __getitem__(self, key):
-        """Allow dictionary-like access to options"""
-        return self.merged[key]
-
-    def __contains__(self, key):
-        """Allow 'in' operator for options"""
-        return key in self.merged
-
-    def as_dict(self):
-        """Return the merged options as a dictionary"""
-        return self.merged.copy()
-
-    def __bool__(self):
-        """Return True if there are any options"""
-        return len(self.options_list) > 0 and any(opt is not None for opt in self.options_list)
-
-    def debug_print_options(self):
-        for i, options_dict in enumerate(self.options_list):
-            RESplain(f"Options {i}:", debug=True)
-            if options_dict is not None:
-                for key, value in options_dict.items():
-                    RESplain(f"  {key}: {value}", debug=True)
-            else:
-                RESplain("  None", "\n", debug=True)
-
-
 # MISCELLANEOUS OPS
 
 
@@ -284,62 +116,6 @@ def has_nested_attr(obj, attr_path):
             return False
         obj = getattr(obj, attr)
     return True
-
-
-def safe_get_nested(d, keys, default=None):
-    for key in keys:
-        if isinstance(d, dict):
-            d = d.get(key, default)
-        else:
-            return default
-    return d
-
-
-class AlwaysTrueList:
-    def __contains__(self, item):
-        return True
-
-    def __iter__(self):
-        while True:
-            yield True  # kapow
-
-
-def parse_range_string(s):
-    if "all" in s:
-        return AlwaysTrueList()
-
-    result = []
-    for part in s.split(","):
-        part = part.strip()
-        if not part:
-            continue
-        val = float(part) if "." in part else int(part)
-        result.append(val)
-    return result
-
-
-def parse_range_string_int(s):
-    if "all" in s:
-        return AlwaysTrueList()
-
-    result = []
-    for part in s.split(","):
-        if "-" in part:
-            start, end = part.split("-")
-            result.extend(range(int(start), int(end) + 1))
-        elif part.strip() != "":
-            result.append(int(part))
-    return result
-
-
-def parse_tile_sizes(tile_sizes: str):
-    """
-    Converts multiline string like:
-        "1024,1024\n768,1344\n1344,768"
-    into:
-        [(1024, 1024), (768, 1344), (1344, 768)]
-    """
-    return [tuple(map(int, line.strip().split(","))) for line in tile_sizes.strip().splitlines() if line.strip()]
 
 
 # COMFY OPS
@@ -359,23 +135,6 @@ def is_video_model(model):
     return is_video_model
 
 
-def move_to_same_device(*tensors):
-    if not tensors:
-        return tensors
-    device = tensors[0].device
-    return tuple(tensor.to(device) for tensor in tensors)
-
-
-def conditioning_set_values(conditioning, values={}):
-    c = []
-    for t in conditioning:
-        n = [t[0], t[1].copy()]
-        for k in values:
-            n[1][k] = values[k]
-        c.append(n)
-    return c
-
-
 # MISC OPS
 
 
@@ -384,21 +143,6 @@ def initialize_or_scale(tensor, value, steps):
         return torch.full((steps,), value)
     else:
         return value * tensor
-
-
-def pad_tensor_list_to_max_len(tensors: List[torch.Tensor], dim: int = -2) -> List[torch.Tensor]:
-    """Zero-pad each tensor in `tensors` along `dim` up to their common maximum length."""
-    max_len = max(t.shape[dim] for t in tensors)
-    padded = []
-    for t in tensors:
-        cur = t.shape[dim]
-        if cur < max_len:
-            pad_shape = list(t.shape)
-            pad_shape[dim] = max_len - cur
-            zeros = torch.zeros(*pad_shape, dtype=t.dtype, device=t.device)
-            t = torch.cat((t, zeros), dim=dim)
-        padded.append(t)
-    return padded
 
 
 class PrecisionTool:
@@ -829,24 +573,3 @@ class FrameWeightsManager:
         weights = low_value + (1.0 - low_value) * trough
 
         return weights
-
-
-def check_projection_consistency(x, W, b):
-    W_pinv = torch.linalg.pinv(W.T)
-    x_proj = (x - b) @ W_pinv
-    x_recon = x_proj @ W.T + b
-    error = torch.norm(x - x_recon)
-    in_subspace = error < 1e-3
-    return error, in_subspace
-
-
-def get_max_dtype(device="cpu"):
-    if torch.backends.mps.is_available():
-        MAX_DTYPE = torch.float32
-    else:
-        try:
-            torch.tensor([0.0], dtype=torch.float64, device=device)
-            MAX_DTYPE = torch.float64
-        except (RuntimeError, TypeError):
-            MAX_DTYPE = torch.float32
-    return MAX_DTYPE
