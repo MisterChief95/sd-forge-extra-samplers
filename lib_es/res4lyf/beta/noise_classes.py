@@ -943,38 +943,3 @@ if OPENSIMPLEX_ENABLE:
         }
     )
 
-NOISE_GENERATOR_NAMES = tuple(NOISE_GENERATOR_CLASSES.keys())
-NOISE_GENERATOR_NAMES_SIMPLE = tuple(NOISE_GENERATOR_CLASSES_SIMPLE.keys())
-
-
-@precision_tool.cast_tensor
-def prepare_noise(
-    latent_image, seed, noise_type, noise_inds=None, alpha=1.0, k=1.0
-):  # adapted from comfy/sample.py: https://github.com/comfyanonymous/ComfyUI
-    # optional arg skip can be used to skip and discard x number of noise generations for a given seed
-    noise_func = NOISE_GENERATOR_CLASSES.get(noise_type)(
-        x=latent_image, seed=seed, sigma_min=0.0291675, sigma_max=14.614642
-    )  # WARNING: HARDCODED SDXL SIGMA RANGE!
-
-    if noise_type == "fractal":
-        noise_func.alpha = alpha
-        noise_func.k = k
-
-    # from here until return is very similar to comfy/sample.py
-    if noise_inds is None:
-        return noise_func(sigma=14.614642, sigma_next=0.0291675)
-
-    unique_inds, inverse = np.unique(noise_inds, return_inverse=True)
-    noises = []
-    for i in range(unique_inds[-1] + 1):
-        noise = noise_func(
-            size=[1] + list(latent_image.size())[1:],
-            dtype=latent_image.dtype,
-            layout=latent_image.layout,
-            device=latent_image.device,
-        )
-        if i in unique_inds:
-            noises.append(noise)
-    noises = [noises[i] for i in inverse]
-    noises = torch.cat(noises, axis=0)
-    return noises

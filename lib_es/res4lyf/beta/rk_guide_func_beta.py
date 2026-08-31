@@ -2160,27 +2160,6 @@ def apply_temporal_smoothing(tensor, temporal_smoothing):
     return data_smooth.view(b, c, h, w, f).permute(0, 1, 4, 2, 3)
 
 
-def get_guide_epsilon_substep(x_0, x_, y0, y0_inv, s_, row, row_offset, rk_type, b=None, c=None):
-    s_in = x_0.new_ones([x_0.shape[0]])
-
-    if b is not None and c is not None:
-        index = (b, c)
-    elif b is not None:
-        index = (b,)
-    else:
-        index = ()
-
-    if RK_Method_Beta.is_exponential(rk_type):
-        eps_row = y0[index] - x_0[index]
-        eps_row_inv = y0_inv[index] - x_0[index]
-    else:
-        eps_row = (
-            (x_[row][index] - y0[index]) / (s_[row] * s_in)
-        )  # was row+row_offset before for x_!!   not right...     also? potential issues here with x_[row+1] being RK.rows+2 with gauss-legendre_2s 1 imp step 1 imp substep
-        eps_row_inv = (x_[row][index] - y0_inv[index]) / (s_[row] * s_in)
-
-    return eps_row, eps_row_inv
-
 
 def get_guide_epsilon(x_0, x_, y0, sigma, rk_type, b=None, c=None):
     s_in = x_0.new_ones([x_0.shape[0]])
@@ -2427,53 +2406,6 @@ def noise_cossim_guide_eps_tiled(
     return x_detiled
 
 
-class NoiseStepHandlerOSDE:
-    def __init__(self, x, eps=None, data=None, x_init=None, guide=None, guide_bkg=None):
-        self.noise = None
-        self.x = x
-        self.eps = eps
-        self.data = data
-        self.x_init = x_init
-        self.guide = guide
-        self.guide_bkg = guide_bkg
-
-        self.eps_list = None
-
-        self.noise_cossim_map = {
-            "eps_orthogonal": [self.noise, self.eps],
-            "eps_data_orthogonal": [self.noise, self.eps, self.data],
-            "data_orthogonal": [self.noise, self.data],
-            "xinit_orthogonal": [self.noise, self.x_init],
-            "x_orthogonal": [self.noise, self.x],
-            "x_data_orthogonal": [self.noise, self.x, self.data],
-            "x_eps_orthogonal": [self.noise, self.x, self.eps],
-            "x_eps_data_orthogonal": [self.noise, self.x, self.eps, self.data],
-            "x_eps_data_xinit_orthogonal": [self.noise, self.x, self.eps, self.data, self.x_init],
-            "x_eps_guide_orthogonal": [self.noise, self.x, self.eps, self.guide],
-            "x_eps_guide_bkg_orthogonal": [self.noise, self.x, self.eps, self.guide_bkg],
-            "noise_orthogonal": [self.noise, self.x_init],
-            "guide_orthogonal": [self.noise, self.guide],
-            "guide_bkg_orthogonal": [self.noise, self.guide_bkg],
-        }
-
-    def check_cossim_source(self, source):
-        return source in self.noise_cossim_map
-
-    def get_ortho_noise(
-        self, noise, prev_noises=None, max_iter=100, max_score=1e-7, NOISE_COSSIM_SOURCE="eps_orthogonal"
-    ):
-
-        if NOISE_COSSIM_SOURCE not in self.noise_cossim_map:
-            raise ValueError(f"Invalid NOISE_COSSIM_SOURCE: {NOISE_COSSIM_SOURCE}")
-
-        self.noise_cossim_map[NOISE_COSSIM_SOURCE][0] = noise
-
-        params = self.noise_cossim_map[NOISE_COSSIM_SOURCE]
-
-        noise = get_orthogonal_noise_from_channelwise(*params, max_iter=max_iter, max_score=max_score)
-
-        return noise
-
 
 # NOTE: NS AND SUBSTEP ADDED!
 def handle_tiled_etc_noise_steps(
@@ -2620,13 +2552,3 @@ def handle_tiled_etc_noise_steps(
     return x
 
 
-def get_masked_epsilon_projection(x_0, x_, eps_, y0, y0_inv, s_, row, row_offset, rk_type, LG, step):
-
-    eps_row, eps_row_inv = get_guide_epsilon_substep(x_0, x_, y0, y0_inv, s_, row, row_offset, rk_type)
-    eps_row_lerp = eps_[row] + LG.mask * (eps_row - eps_[row]) + (1 - LG.mask) * (eps_row_inv - eps_[row])
-    eps_collinear_eps_lerp = get_collinear(eps_[row], eps_row_lerp)
-    eps_lerp_ortho_eps = get_orthogonal(eps_row_lerp, eps_[row])
-    eps_sum = eps_collinear_eps_lerp + eps_lerp_ortho_eps
-    lgw_mask, lgw_mask_inv = LG.get_masks_for_step(step)
-    eps_substep_guide = eps_[row] + lgw_mask * (eps_sum - eps_[row]) + lgw_mask_inv * (eps_sum - eps_[row])
-    return eps_substep_guide

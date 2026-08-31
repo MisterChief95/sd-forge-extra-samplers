@@ -27,18 +27,3 @@ def apply_scattersort_spatial(x_spatial: torch.Tensor, y_spatial: torch.Tensor):
     x_emb = x_sorted.scatter(dim=-2, index=x_idx, src=y_sorted.expand(x_sorted.shape))
 
     return _unflatten_spatial(x_emb, x_spatial.shape)
-
-
-def apply_adain_spatial(x_spatial: torch.Tensor, y_spatial: torch.Tensor):
-    x_emb = _flatten_spatial(x_spatial)
-    y_emb = _flatten_spatial(y_spatial)
-
-    x_mean = x_emb.mean(-2, keepdim=True)
-    x_std = x_emb.std(-2, keepdim=True).clamp_min(1e-8)
-    y_mean = y_emb.mean(-2, keepdim=True)
-    y_std = y_emb.std(-2, keepdim=True).clamp_min(1e-8)
-
-    x_emb_adain = (x_emb - x_mean) / x_std
-    x_emb_adain = (x_emb_adain * y_std) + y_mean
-
-    return _unflatten_spatial(x_emb_adain, x_spatial.shape)

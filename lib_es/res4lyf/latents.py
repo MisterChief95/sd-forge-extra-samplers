@@ -16,9 +16,6 @@ import math
 # TENSOR PROJECTION OPS
 
 
-def get_cosine_similarity_manual(a, b):
-    return (a * b).sum() / (torch.norm(a) * torch.norm(b))
-
 
 def get_cosine_similarity(a, b, mask=None, dim=0):
     if a.ndim == 5 and b.ndim == 5 and b.shape[2] == 1:
@@ -117,32 +114,6 @@ def gram_schmidt_channels_optimized(A, *refs):
 
 
 # Efficient implementation equivalent to the following:
-def attention_weights(query, key, attn_mask=None) -> torch.Tensor:
-    L, S = query.size(-2), key.size(-2)
-    scale_factor = 1 / math.sqrt(query.size(-1))
-    attn_bias = torch.zeros(L, S, dtype=query.dtype).to(query.device)
-
-    if attn_mask is not None:
-        if attn_mask.dtype == torch.bool:
-            attn_bias.masked_fill_(attn_mask.logical_not(), float("-inf"))
-        else:
-            attn_bias += attn_mask
-
-    attn_weight = query @ key.transpose(-2, -1) * scale_factor
-    attn_weight += attn_bias
-    attn_weight = torch.softmax(attn_weight, dim=-1)
-
-    return attn_weight
-
-
-def attention_weights_orig(q, k):
-    # implementation of in-place softmax to reduce memory req
-    scores = torch.matmul(q, k.transpose(-2, -1))
-    scores.div_(math.sqrt(q.size(-1)))
-    torch.exp(scores, out=scores)
-    summed = torch.sum(scores, dim=-1, keepdim=True)
-    scores /= summed
-    return scores.nan_to_num_(0.0, 65504.0, -65504.0)
 
 
 # calculate slerp ratio needed to hit a target cosine similarity score
@@ -176,20 +147,6 @@ def get_slerp_weight_for_cossim(cos_sim, target_cos):
         return max(0.0, min(1.0, w1))
 
 
-def get_slerp_ratio(cos_sim_A, cos_sim_B, target_cos):
-    import math
-
-    alpha = math.acos(cos_sim_A)
-    beta = math.acos(cos_sim_B)
-    delta = math.acos(target_cos)
-
-    if abs(beta - alpha) < 1e-6:
-        return 0.5
-
-    t = (delta - alpha) / (beta - alpha)
-    t = max(0.0, min(1.0, t))
-    return t
-
 
 def find_slerp_ratio_grid(
     A: torch.Tensor,
@@ -219,39 +176,6 @@ def find_slerp_ratio_grid(
     return best_t
 
 
-def compute_slerp_ratio_for_target(A: torch.Tensor, B: torch.Tensor, D: torch.Tensor, target: float) -> float:
-    """
-    Given three unit vectors A, B, and D (all assumed to be coplanar)
-    and a target cosine similarity (target) for the slerp result C with D,
-    compute the interpolation parameter t such that:
-        C = slerp(t, A, B)
-        and cos(C, D) ≈ target.
-
-    Args:
-        A: Tensor of shape (D,), starting vector.
-        B: Tensor of shape (D,), ending vector.
-        D: Tensor of shape (D,), the reference vector.
-        target: Desired cosine similarity between C and D.
-
-    Returns:
-        t: A float between 0 and 1.
-    """
-    A = A / (A.norm() + 1e-8)
-    B = B / (B.norm() + 1e-8)
-    D = D / (D.norm() + 1e-8)
-
-    alpha = math.acos(max(-1.0, min(1.0, float(torch.dot(D, A)))))  # angel between D and A
-    beta = math.acos(max(-1.0, min(1.0, float(torch.dot(D, B)))))  # angle between D and B
-
-    delta = math.acos(max(-1.0, min(1.0, target)))  # target cosine similarity... angle etc...
-
-    if abs(beta - alpha) < 1e-6:
-        return 0.5
-
-    t = (delta - alpha) / (beta - alpha)
-    t = max(0.0, min(1.0, t))
-    return t
-
 
 # TENSOR NORMALIZATION OPS
 
@@ -269,20 +193,7 @@ def normalize_zscore(x, channelwise=False, inplace=False):
             return (x - x.mean()) / x.std()
 
 
-def latent_normalize_channels(x):
-    mean = x.mean(dim=(-2, -1), keepdim=True)
-    std = x.std(dim=(-2, -1), keepdim=True)
-    return (x - mean) / std
 
-
-def latent_stdize_channels(x):
-    std = x.std(dim=(-2, -1), keepdim=True)
-    return x / std
-
-
-def latent_meancenter_channels(x):
-    mean = x.mean(dim=(-2, -1), keepdim=True)
-    return x - mean
 
 
 # TENSOR INTERPOLATION OPS
@@ -328,69 +239,7 @@ def lagrange_interpolation(x_values, y_values, x_new):
     return result
 
 
-def line_intersection(a: torch.Tensor, d1: torch.Tensor, b: torch.Tensor, d2: torch.Tensor, eps=1e-8) -> torch.Tensor:
-    """
-    Computes the intersection (or closest point average) of two lines in R^D.
 
-    The first line is defined by:  L1: x = a + t * d1
-    The second line is defined by: L2: x = b + s * d2
-
-    If the lines do not exactly intersect, this function returns the average of the closest points.
-
-    a, d1, b, d2: Tensors of shape (D,) or with an extra batch dimension (B, D).
-    Returns: Tensor of shape (D,) or (B, D) representing the intersection (or midpoint of closest approach).
-    """
-    # Compute dot products
-    d1d1 = (d1 * d1).sum(dim=-1, keepdim=True)  # shape (B,1) or (1,)
-    d2d2 = (d2 * d2).sum(dim=-1, keepdim=True)
-    d1d2 = (d1 * d2).sum(dim=-1, keepdim=True)
-
-    r = b - a  # shape (B, D) or (D,)
-    r_d1 = (r * d1).sum(dim=-1, keepdim=True)
-    r_d2 = (r * d2).sum(dim=-1, keepdim=True)
-
-    # Solve for t and s:
-    # t * d1d1 - s * d1d2 = r_d1
-    # t * d1d2 - s * d2d2 = r_d2
-    # Solve using determinants:
-    denom = d1d1 * d2d2 - d1d2 * d1d2
-    # Avoid division by zero
-    denom = torch.where(denom.abs() < eps, torch.full_like(denom, eps), denom)
-    t = (r_d1 * d2d2 - r_d2 * d1d2) / denom
-    s = (r_d1 * d1d2 - r_d2 * d1d1) / denom
-
-    point1 = a + t * d1
-    point2 = b + s * d2
-    # If they intersect exactly, point1 and point2 are identical.
-    # Otherwise, return the midpoint of the closest points.
-    return (point1 + point2) / 2
-
-
-def slerp_direction(t: float, u0: torch.Tensor, u1: torch.Tensor, DOT_THRESHOLD=0.9995) -> torch.Tensor:
-    dot = (u0 * u1).sum(-1).clamp(-1.0, 1.0)  # u0, u1 are unit vectors... should not be affected by clamp
-    if dot.item() > DOT_THRESHOLD:  # u0, u1 nearly aligned, fallback to lerp
-        return torch.lerp(u0, u1, t)
-    theta_0 = torch.acos(dot)
-    sin_theta_0 = torch.sin(theta_0)
-    theta_t = theta_0 * t
-    sin_theta_t = torch.sin(theta_t)
-    s0 = torch.sin(theta_0 - theta_t) / sin_theta_0
-    s1 = sin_theta_t / sin_theta_0
-    return s0 * u0 + s1 * u1
-
-
-def magnitude_aware_interpolation(t: float, v0: torch.Tensor, v1: torch.Tensor) -> torch.Tensor:
-
-    m0 = v0.norm(dim=-1, keepdim=True)
-    m1 = v1.norm(dim=-1, keepdim=True)
-
-    u0 = v0 / (m0 + 1e-8)
-    u1 = v1 / (m1 + 1e-8)
-
-    u = slerp_direction(t, u0, u1)
-
-    m = (1 - t) * m0 + t * m1  # tinerpolate magnitudes linearly
-    return m * u
 
 
 def slerp_tensor(val: torch.Tensor, low: torch.Tensor, high: torch.Tensor, dim=-3) -> torch.Tensor:
@@ -605,103 +454,9 @@ def hard_light_blend(base_latent, blend_latent):
     return combined_result
 
 
-def make_checkerboard(tile_size: int, num_tiles: int, dtype=torch.float16, device="cpu"):
-    pattern = torch.tensor([[0, 1], [1, 0]], dtype=dtype, device=device)
-    board = pattern.repeat(num_tiles // 2 + 1, num_tiles // 2 + 1)[:num_tiles, :num_tiles]
-    board_expanded = board.repeat_interleave(tile_size, dim=0).repeat_interleave(tile_size, dim=1)
-    return board_expanded
 
 
-def get_edge_mask_slug(mask: torch.Tensor, dilation: int = 3) -> torch.Tensor:
 
-    mask = mask.float()
-
-    eroded = -F.max_pool2d(-mask.unsqueeze(0).unsqueeze(0), kernel_size=3, stride=1, padding=1)
-    eroded = eroded.squeeze(0).squeeze(0)
-
-    edge = mask - eroded
-    edge = (edge > 0).float()
-
-    dilated_edge = F.max_pool2d(edge.unsqueeze(0).unsqueeze(0), kernel_size=dilation, stride=1, padding=dilation // 2)
-    dilated_edge = dilated_edge.squeeze(0).squeeze(0)
-
-    return dilated_edge
-
-
-def get_edge_mask(mask: torch.Tensor, dilation: int = 3) -> torch.Tensor:
-    if dilation == 0:  # safeguard for zero kernel size...
-        return mask
-    mask_tmp = mask.squeeze().to("cuda")
-    mask_tmp = mask_tmp.float()
-
-    eroded = -F.max_pool2d(-mask_tmp.unsqueeze(0).unsqueeze(0), kernel_size=3, stride=1, padding=1)
-    eroded = eroded.squeeze(0).squeeze(0)
-
-    edge = mask_tmp - eroded
-    edge = (edge > 0).float()
-
-    dilated_edge = F.max_pool2d(edge.unsqueeze(0).unsqueeze(0), kernel_size=dilation, stride=1, padding=dilation // 2)
-    dilated_edge = dilated_edge.squeeze(0).squeeze(0)
-
-    return dilated_edge[..., : mask.shape[-2], : mask.shape[-1]].view_as(mask).to(mask.device)
-
-
-def checkerboard_variable(widths, dtype=torch.float16, device="cpu"):
-    total = sum(widths)
-    mask = torch.zeros((total, total), dtype=dtype, device=device)
-
-    x_start = 0
-    for i, w_x in enumerate(widths):
-        y_start = 0
-        for j, w_y in enumerate(widths):
-            if (i + j) % 2 == 0:  # checkerboard logic
-                mask[x_start : x_start + w_x, y_start : y_start + w_y] = 1.0
-            y_start += w_y
-        x_start += w_x
-
-    return mask
-
-
-def interpolate_spd(cov1, cov2, t, eps=1e-5):
-    """
-    Geodesic interpolation on the SPD manifold between cov1 and cov2.
-
-    Args:
-      cov1, cov2: [D×D] symmetric positive-definite covariances (torch.Tensor).
-      t:         interpolation factor in [0,1].
-      eps:       jitter added to diagonal for numerical stability.
-
-    Returns:
-      cov_t:     the SPD matrix at fraction t along the geodesic from cov1 to cov2.
-    """
-    cov1 = cov1.double()
-    cov2 = cov2.double()
-
-    M1 = cov1.clone()
-    M1.diagonal().add_(eps)
-    M2 = cov2.clone()
-    M2.diagonal().add_(eps)
-
-    S1, U1 = torch.linalg.eigh(M1)
-    S1_clamped = S1.clamp(min=eps)
-    inv_sqrt_S1 = S1_clamped.rsqrt()
-    M1_inv_sqrt = U1 @ torch.diag(inv_sqrt_S1) @ U1.T
-
-    middle = M1_inv_sqrt @ M2 @ M1_inv_sqrt
-
-    Sm, Um = torch.linalg.eigh(middle)
-    Sm_clamped = Sm.clamp(min=eps)
-
-    Sm_t = Sm_clamped.pow(t)
-
-    middle_t = Um @ torch.diag(Sm_t) @ Um.T
-
-    sqrt_S1 = S1_clamped.sqrt()
-    M1_sqrt = U1 @ torch.diag(sqrt_S1) @ U1.T
-
-    cov_t = M1_sqrt @ middle_t @ M1_sqrt
-
-    return cov_t.to(cov1.dtype)
 
 
 def tile_latent(
@@ -800,65 +555,7 @@ def untile_latent(
     return out
 
 
-def upscale_to_match_spatial(tensor_5d, ref_4d, mode="bicubic"):
-    """
-    Upscales a 5D tensor [B, C, T, H1, W1] to match the spatial size of a 4D tensor [1, C, H2, W2].
 
-    Args:
-        tensor_5d: Tensor of shape [B, C, T, H1, W1]
-        ref_4d: Tensor of shape [1, C, H2, W2] — used as spatial reference
-        mode: Interpolation mode ('bilinear' or 'bicubic')
-
-    Returns:
-        Resized tensor of shape [B, C, T, H2, W2]
-    """
-    b, c, t, _, _ = tensor_5d.shape
-    _, _, h_target, w_target = ref_4d.shape
-
-    tensor_reshaped = tensor_5d.reshape(b * c, t, tensor_5d.shape[-2], tensor_5d.shape[-1])
-    upscaled = F.interpolate(tensor_reshaped, size=(h_target, w_target), mode=mode, align_corners=False)
-    return upscaled.view(b, c, t, h_target, w_target)
-
-
-def gaussian_blur_2d(img: torch.Tensor, sigma: float, kernel_size: int = None) -> torch.Tensor:
-    B, C, H, W = img.shape
-    dtype = img.dtype
-    device = img.device
-
-    if kernel_size is None:
-        kernel_size = int(2 * math.ceil(3 * sigma) + 1)
-
-    if kernel_size % 2 == 0:
-        kernel_size += 1
-
-    coords = torch.arange(kernel_size, dtype=torch.float64) - kernel_size // 2
-    g = torch.exp(-0.5 * (coords / sigma) ** 2)
-    g = g / g.sum()
-
-    kernel_2d = g[:, None] * g[None, :]
-    kernel_2d = kernel_2d.to(dtype=dtype, device=device)
-
-    kernel = kernel_2d.expand(C, 1, kernel_size, kernel_size)
-
-    pad = kernel_size // 2
-    img_padded = F.pad(img, (pad, pad, pad, pad), mode="reflect")
-
-    return F.conv2d(img_padded, kernel, groups=C)
-
-
-def median_blur_2d(img: torch.Tensor, kernel_size: int = 3) -> torch.Tensor:
-    if kernel_size % 2 == 0:
-        kernel_size += 1
-    pad = kernel_size // 2
-
-    B, C, H, W = img.shape
-    img_padded = F.pad(img, (pad, pad, pad, pad), mode="reflect")
-
-    unfolded = img_padded.unfold(2, kernel_size, 1).unfold(3, kernel_size, 1)
-    # unfolded: [B, C, H, W, kH, kW] → flatten to patches
-    patches = unfolded.contiguous().view(B, C, H, W, -1)
-    median = patches.median(dim=-1).values
-    return median
 
 
 def apply_to_state_info_tensors(obj, ref_shape, modify_func, *args, **kwargs):

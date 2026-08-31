@@ -23,7 +23,6 @@ import copy
 
 from backend.misc.image_resize import bislerp
 
-from ..model_sampling import EPS
 from ..res4lyf import RESplain
 from ..helper import ExtraOptions, FrameWeightsManager
 from ..latents import (
@@ -245,7 +244,7 @@ def sample_rk_beta(
     state_info = {} if state_info is None else state_info
     state_info_out = {} if state_info_out is None else state_info_out
 
-    VE_MODEL = isinstance(model.inner_model.inner_model.model_sampling, EPS)
+    VE_MODEL = getattr(model.inner_model.inner_model.model_sampling, "prediction_type", None) == "epsilon"
 
     RENOISE = False
     if "raw_x" in state_info and sampler_mode in {"resample", "unsample"}:
