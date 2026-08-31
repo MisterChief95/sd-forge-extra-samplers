@@ -226,8 +226,6 @@ class DualFormatList(list):
         return any(isinstance(opt, str) and opt.endswith("/" + item) for opt in self)
 
 
-
-
 def get_implicit_sampler_name_list(nameOnly=False) -> list:
     implicit_sampler_name_list = []
     for sampler_name in IRK_SAMPLER_FOLDER_MAP:
@@ -240,9 +238,6 @@ def get_implicit_sampler_name_list(nameOnly=False) -> list:
             full_sampler_name = full_sampler_name[1:]
         implicit_sampler_name_list.append(full_sampler_name)
     return DualFormatList(implicit_sampler_name_list)
-
-
-
 
 
 alpha_crouzeix = (2 / (3**0.5)) * math.cos(math.pi / 18)
@@ -3784,8 +3779,6 @@ def gen_first_col_exp_uv(a, b, c, u, v, φ):
     return a, b
 
 
-
-
 def mu_numerator(j, cd, ci, ck, cl):
     if j == 2:
         numerator = -cd * ck * cl
@@ -3841,5 +3834,3 @@ def denominator(ci, *args):
     for arg in args:
         result *= ci - arg
     return result
-
-

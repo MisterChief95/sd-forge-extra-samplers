@@ -22,7 +22,6 @@ from ..latents import normalize_zscore
 from ..res4lyf import RESplain
 
 
-
 def get_data_from_step(x, x_next, sigma, sigma_next):  # assumes 100% linear trajectory
     h = sigma_next - sigma
     return (sigma_next * x - sigma * x_next) / h
@@ -900,6 +899,3 @@ class RK_NoiseSampler:
         self.sampler_mode = sampler_mode
 
         return sigmas, UNSAMPLE
-
-
-

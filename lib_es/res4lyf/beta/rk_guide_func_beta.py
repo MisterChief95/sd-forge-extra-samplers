@@ -49,7 +49,6 @@ from ..latents import (
     get_slerp_weight_for_cossim,
     normalize_latent,
     slerp_tensor,
-    get_orthogonal_noise_from_channelwise,
 )
 
 from .rk_method_beta import RK_Method_Beta
@@ -2160,7 +2159,6 @@ def apply_temporal_smoothing(tensor, temporal_smoothing):
     return data_smooth.view(b, c, h, w, f).permute(0, 1, 4, 2, 3)
 
 
-
 def get_guide_epsilon(x_0, x_, y0, sigma, rk_type, b=None, c=None):
     s_in = x_0.new_ones([x_0.shape[0]])
 
@@ -2406,7 +2404,6 @@ def noise_cossim_guide_eps_tiled(
     return x_detiled
 
 
-
 # NOTE: NS AND SUBSTEP ADDED!
 def handle_tiled_etc_noise_steps(
     x_0,
@@ -2550,5 +2547,3 @@ def handle_tiled_etc_noise_steps(
                 x = x_tmp[0]
                 break
     return x
-
-

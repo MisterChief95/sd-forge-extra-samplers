@@ -8,11 +8,9 @@
 # See PORTING_NOTES.md for Forge-specific divergence notes.
 #
 import torch
-from typing import List
 
 import re
 import functools
-import copy
 
 from .res4lyf import RESplain
 
@@ -108,8 +106,6 @@ def get_extra_options_kv(key, default, extra_options, ret_type=None):
     return ret_type(value)
 
 
-
-
 # MISCELLANEOUS OPS
 
 
@@ -120,11 +116,6 @@ def has_nested_attr(obj, attr_path):
             return False
         obj = getattr(obj, attr)
     return True
-
-
-
-
-
 
 
 # COMFY OPS
@@ -144,8 +135,6 @@ def is_video_model(model):
     return is_video_model
 
 
-
-
 # MISC OPS
 
 
@@ -154,7 +143,6 @@ def initialize_or_scale(tensor, value, steps):
         return torch.full((steps,), value)
     else:
         return value * tensor
-
 
 
 class PrecisionTool:
@@ -585,6 +573,3 @@ class FrameWeightsManager:
         weights = low_value + (1.0 - low_value) * trough
 
         return weights
-
-
-

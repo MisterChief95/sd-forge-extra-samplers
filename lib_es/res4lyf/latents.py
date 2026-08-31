@@ -16,7 +16,6 @@ import math
 # TENSOR PROJECTION OPS
 
 
-
 def get_cosine_similarity(a, b, mask=None, dim=0):
     if a.ndim == 5 and b.ndim == 5 and b.shape[2] == 1:
         b = b.expand(-1, -1, a.shape[2], -1, -1)
@@ -119,7 +118,6 @@ def gram_schmidt_channels_optimized(A, *refs):
 # calculate slerp ratio needed to hit a target cosine similarity score
 def get_slerp_weight_for_cossim(cos_sim, target_cos):
     # assumes unit vector matrices used for cossim
-    import math
 
     c = cos_sim
     T = target_cos
@@ -145,7 +143,6 @@ def get_slerp_weight_for_cossim(cos_sim, target_cos):
         return candidates[0]
     else:
         return max(0.0, min(1.0, w1))
-
 
 
 def find_slerp_ratio_grid(
@@ -176,7 +173,6 @@ def find_slerp_ratio_grid(
     return best_t
 
 
-
 # TENSOR NORMALIZATION OPS
 
 
@@ -191,9 +187,6 @@ def normalize_zscore(x, channelwise=False, inplace=False):
             return x - x.mean(dim=(-2, -1), keepdim=True) / x.std(dim=(-2, -1), keepdim=True)
         else:
             return (x - x.mean()) / x.std()
-
-
-
 
 
 # TENSOR INTERPOLATION OPS
@@ -237,9 +230,6 @@ def lagrange_interpolation(x_values, y_values, x_new):
         result = result + Li * y_values[i]
 
     return result
-
-
-
 
 
 def slerp_tensor(val: torch.Tensor, low: torch.Tensor, high: torch.Tensor, dim=-3) -> torch.Tensor:
@@ -454,11 +444,6 @@ def hard_light_blend(base_latent, blend_latent):
     return combined_result
 
 
-
-
-
-
-
 def tile_latent(
     latent: torch.Tensor, tile_size: Tuple[int, int]
 ) -> Tuple[torch.Tensor, Tuple[int, ...], Tuple[int, int], Tuple[List[int], List[int]]]:
@@ -553,9 +538,6 @@ def untile_latent(
     valid = count > 0
     out[valid] = out[valid] / count[valid]
     return out
-
-
-
 
 
 def apply_to_state_info_tensors(obj, ref_shape, modify_func, *args, **kwargs):

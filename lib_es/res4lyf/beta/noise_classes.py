@@ -942,4 +942,3 @@ if OPENSIMPLEX_ENABLE:
             "simplex": SimplexNoiseGenerator,
         }
     )
-
